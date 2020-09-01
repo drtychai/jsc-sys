@@ -1,15 +1,14 @@
 [package]
-name = "jsc_sys"
+name = "jscjs_sys"
 version = "0.0.1"
 authors = ["bynx <drtychai@protonmail.com>"]
-build = "build.rs"
-edition = "2018"
-description = "Raw bindings to JavaScriptCore APIs"
+description = "System crate for the Webkit JavaScriptCore JavaScript engine."
 repository = "https://github.com/drtychai/jsc-sys"
-license = "MIT"
+license = "MPL-2.0"
+edition = "2018"
+build = "build.rs"
 include = [
-    "WebKit/Source/JavaScriptCore",
-    "WebKit/WebKitBuild/Debug/DerivedSources/ForwardingHeaders/JavaScriptCore"
+    "**/WebKit/WebKitBuild/Debug/DerivedSources/ForwardingHeaders/JavaScriptCore"
 ]
 
 [lib]
@@ -17,10 +16,8 @@ name = "jsc_sys"
 path = "src/lib.rs"
 
 [dependencies]
-encoding_c = "0.9.6"
-encoding_c_mem = "0.2.5"
-libc = "0.2"
-libz-sys = "1.0"
+libc = "*"
+libz-sys = "*"
 
 [build-dependencies]
 bindgen = "*"
