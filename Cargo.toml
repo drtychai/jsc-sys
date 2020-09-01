@@ -7,12 +7,9 @@ repository = "https://github.com/drtychai/jsc-sys"
 license = "MPL-2.0"
 edition = "2018"
 build = "build.rs"
-include = [
-    "**/WebKit/WebKitBuild/Debug/DerivedSources/ForwardingHeaders/JavaScriptCore"
-]
 
 [lib]
-name = "jsc_sys"
+name = "jscjs_sys"
 path = "src/lib.rs"
 
 [dependencies]

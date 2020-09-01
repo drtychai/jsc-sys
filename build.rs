@@ -117,11 +117,11 @@ fn make_system_darwin() {
 }
 
 fn main() {
-    if cfg!(feature = "bundled") {
+    if cfg!(target_os = "linux") {
         make_bundled()
     } else if cfg!(target_os = "macos") || cfg!(target_os = "ios") {
         make_system_darwin()
     } else {
-        panic!("Unsupported build config; try feature `bundled`.")
+        panic!("Unsupported target architecture.")
     }
 }
