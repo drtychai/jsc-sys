@@ -1,0 +1,57 @@
+[package]
+name = "jsc_sys"
+version = "0.0.1"
+authors = ["bynx <drtychai@protonmail.com>"]
+build = "build.rs"
+edition = "2018"
+#exclude = [
+#    "WebKit/Examples/*",
+#    "WebKit/LayoutTests/*",
+#    "WebKit/ManualTests/*",
+#    "WebKit/PerformanceTests/*",
+#    "WebKit/Source/JavaScriptCore/tests/*",
+#    "WebKit/Source/ThirdParty/ANGLE",
+#    "WebKit/Source/ThirdParty/brotli",
+#    "WebKit/Source/ThirdParty/qunit",
+#    "WebKit/Source/ThirdParty/woff2",
+#    "WebKit/Source/WebCore/*",
+#    "WebKit/Source/WebKit/*",
+#    "WebKit/Source/WebKit2/*",
+#    "WebKit/Source/WebInspectorUI/*",
+#    "WebKit/**/ChangeLog*",
+#    "WebKit/**/*xcodeproj/*",
+#    "WebKit/Tools/WebKitTestRunner/*",
+#    "WebKit/Tools/WebKitLauncher/*",
+#    "WebKit/Tools/BuildSlaveSupport/*",
+#    "WebKit/Tools/MiniBrowser/*",
+#    "WebKit/Tools/TestResultServer/*",
+#    "WebKit/Tools/DumpRenderTree/*",
+#    "WebKit/Tools/iExploder/*",
+#    "WebKit/Tools/CygwinDownloader/*",
+#    "WebKit/WebKitBuild/*",
+#    "WebKit/WebKitLibraries/*",
+#    "WebKit/Websites/*",
+#]
+include = [
+    "/////WebKit/Source/JavaScriptCore"
+]
+
+
+
+[lib]
+name = "jsc_sys"
+path = "src/lib.rs"
+
+[dependencies]
+#encoding_c = "0.9.6"
+#encoding_c_mem = "0.2.5"
+#libc = "0.2"
+#libz-sys = "1.0"
+
+[build-dependencies]
+#bindgen = "0.49.3"
+bindgen = "*"
+pkg-config = "0.3.14"
+cmake = "*"
+clang = "*"
+walkdir = "*"
