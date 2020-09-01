@@ -13,12 +13,12 @@ name = "jscjs_sys"
 path = "src/lib.rs"
 
 [dependencies]
-libc = "*"
-libz-sys = "*"
+libc = "0.2.76"
+libz-sys = "1.1.1"
 
 [build-dependencies]
-bindgen = "*"
+bindgen = "0.55.1"
 pkg-config = "0.3.14"
-cmake = "*"
-clang = "*"
-walkdir = "*"
+cmake = "0.1.44"
+clang = "1.0.1"
+walkdir = "2.3.1"
