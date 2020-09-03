@@ -17,7 +17,7 @@ jobs:
     - name: pull-all-the-source
       uses: actions/checkout@v2
       with:
-        repository: '${{ github.repository }}'
+        repository: .
         submodules: 'true'
 
     - name: setup-docker
@@ -29,19 +29,18 @@ jobs:
     - name: musl-static-build
       run: |
         set -x
-        docker run \
-            -v /home/runner/jscjs-sys/target:/home/rust/jscjs-sys \
-            -v /home/runner/.cargo/git:/home/rust/.cargo/git \
-            -v /home/runner/.cargo/registry:/root/.cargo/registry \
-            --name build-image \
+        docker run --name build-image \
+            -v /home/runner/work/jsc-sys:/home/rust/jsc-sys \
+            -v /home/runner/.cargo:/home/rust/.cargo \
+            --pull \
             registry.gitlab.com/rust_musl_docker/image:stable-latest \
-            /bin/bash -c "apt update && \
-                            apt install -y ninja-build && \
+            /bin/bash -c "apt update && apt install -y ninja-build && \
+                            cd /home/rust/jsc-sys && \
                             cargo build -vv --target=x86_64-unknown-linux-musl"
 
         echo "Build complete"
-        docker cp build-jscjs:/home/rust/jscjs-sys/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/build/bin/jsc /home/runner/jsc"
+        docker cp build-image:/home/rust/jsc-sys/**/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/build/bin/jsc /home/runner/work/jsc"
 
         docker rm build-image
         docker rmi registry.gitlab.com/rust_musl_docker/image
-        tar zcvf /home/runner/jscjs-sys_musl-debug.tar.gz /home/runner/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/*
+        tar zcvf /home/runner/x86_64-unknown-linux-musl_debug-build.tar.gz /home/rust/jsc-sys/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/*
