@@ -1,0 +1,48 @@
+name: build-linux
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: pull-all-the-source
+      uses: actions/checkout@v2
+      with:
+        repository: '${{ github.repository }}'
+        submodules: 'true'
+
+    - name: setup-docker
+      uses: docker-practice/actions-setup-docker@master
+      with:
+        docker_version: 19.03
+        docker_channel: stable
+
+    - name: musl-static-build
+      run: |
+        set -x
+        docker run -it \
+            -v /home/runner/jscjs-sys/target:/home/rust/jscjs-sys \
+            -v /home/runner/.cargo/git:/home/rust/.cargo/git \
+            -v /home/runner/.cargo/registry:/root/.cargo/registry \
+            --name build-image \
+            registry.gitlab.com/rust_musl_docker/image:stable-latest \
+            /bin/bash -c "\
+                          apt update && \
+                            apt install -y ninja-build && \
+                            cargo build -vv --target=x86_64-unknown-linux-musl"
+
+        echo "Build complete"
+        docker cp build-jscjs:/home/rust/jscjs-sys/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/build/bin/jsc /home/runner/jsc"
+
+        docker rm build-image
+        docker rmi registry.gitlab.com/rust_musl_docker/image
+        tar zcvf /home/runner/jscjs-sys_musl-debug.tar.gz /home/runner/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/*
