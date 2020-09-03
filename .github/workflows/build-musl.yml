@@ -17,7 +17,7 @@ jobs:
     - name: pull-all-the-source
       uses: actions/checkout@v2
       with:
-        repository: .
+        repository: '${{ github.repository }}'
         submodules: 'true'
 
     - name: setup-docker
@@ -26,21 +26,33 @@ jobs:
         docker_version: 19.03
         docker_channel: stable
 
-    - name: musl-static-build
+    - name: pull-musl-image
+      run: docker pull registry.gitlab.com/rust_musl_docker/image:stable-latest
+
+    - name: build-musl-image
+      run: docker build --no-cache . -t rust_musl_docker/image:stable-latest
+
+    - name: run-musl-image
       run: |
-        set -x
-        docker run --name build-image \
-            -v /home/runner/work/jsc-sys:/home/rust/jsc-sys \
-            -v /home/runner/.cargo:/home/rust/.cargo \
-            --pull \
-            registry.gitlab.com/rust_musl_docker/image:stable-latest \
-            /bin/bash -c "apt update && apt install -y ninja-build && \
-                            cd /home/rust/jsc-sys && \
-                            cargo build -vv --target=x86_64-unknown-linux-musl"
+        docker run  --rm --detach -it \
+          --name rust_musl_docker/image:stable-latest \
+          -v /home/runner/work/jsc-sys:/home/rust \
+          -v /home/runner/.cargo:/home/rust/.cargo \
+          rust_musl_docker/image:stable-latest \
+          bash
+
+    - name: exec-musl-build
+      run: |
+        docker exec -t rust_musl_docker/image:stable-latest \
+          bash -c " \
+            apt update && \
+            apt install -y ninja-build && \
+            cd /home/rust/jsc-sys && \
+            cargo build -vv --target=x86_64-unknown-linux-musl"
 
         echo "Build complete"
         docker cp build-image:/home/rust/jsc-sys/**/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/build/bin/jsc /home/runner/work/jsc"
 
-        docker rm build-image
+        docker rm rust_musl_docker/image:stable-latest
         docker rmi registry.gitlab.com/rust_musl_docker/image
         tar zcvf /home/runner/x86_64-unknown-linux-musl_debug-build.tar.gz /home/rust/jsc-sys/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/*
