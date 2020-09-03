@@ -1,4 +1,4 @@
-name: Build
+name: build-linux
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,20 +26,4 @@ jobs:
     - name: build-statically-linked-to-musl-libc
       uses: stevenleadbeater/rust-musl-builder@master
       with:
-        args: /bin/bash -c "cargo build -vv--target=x86_64-unknown-linux-musl"
-
-  build-darwin:
-    runs-on: macos-latest
-
-    steps:
-    - name: pull-all-the-source
-      uses: actions/checkout@v2
-      with:
-        repository: '${{ github.repository }}'
-        submodules: 'true'
-
-    - name: install-ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
-
-    - name: build
-      run: cargo build -vv
+        args: /bin/bash -c "cargo build -vv --target=x86_64-unknown-linux-musl"

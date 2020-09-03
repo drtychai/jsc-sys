@@ -1,0 +1,27 @@
+name: build-macos
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: pull-all-the-source
+      uses: actions/checkout@v2
+      with:
+        repository: '${{ github.repository }}'
+        submodules: 'true'
+
+    - name: install-ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: build
+      run: cargo build -vv
