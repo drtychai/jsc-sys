@@ -1,8 +1,8 @@
 [package]
-name = "jscjs_sys"
+name = "jscjs-sys"
 version = "0.0.1"
 authors = ["bynx <drtychai@protonmail.com>"]
-description = "System crate for the Webkit JavaScriptCore JavaScript engine."
+description = "System crate for the Webkit JavsScript engine: JavaScriptCore"
 repository = "https://github.com/drtychai/jsc-sys"
 edition = "2018"
 build = "build.rs"
@@ -10,7 +10,6 @@ license = "MPL-2.0"
 include = [ "jsc-defs_*/**", "WebKit/WebKitBuild/Debug/JavaScriptCore/**" ]
 
 [lib]
-name = "jscjs_sys"
 path = "src/lib.rs"
 crate-type = ["staticlib", "cdylib", "lib"]
 
@@ -18,6 +17,4 @@ crate-type = ["staticlib", "cdylib", "lib"]
 libc = "0.2.76"
 
 [build-dependencies]
-bindgen = "*"
-pkg-config = "0.3.14"
-walkdir = "2.3.1"
+bindgen = "0.55.1"

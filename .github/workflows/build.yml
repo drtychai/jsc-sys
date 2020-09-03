@@ -14,20 +14,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: pull-all-the-source
+      uses: actions/checkout@v2
       with:
         repository: '${{ github.repository }}'
         submodules: 'true'
-    - name: Build
-      run: cargo build -vv
-    
+
+    - name: install-ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: build-statically-linked-to-musl-libc
+      uses: stevenleadbeater/rust-musl-builder@master
+      with:
+        args: /bin/bash -c "cargo build -vv--target=x86_64-unknown-linux-musl"
+
   build-darwin:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: pull-all-the-source
+      uses: actions/checkout@v2
       with:
         repository: '${{ github.repository }}'
         submodules: 'true'
-    - name: Build
+
+    - name: install-ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: build
       run: cargo build -vv

@@ -1,14 +1,15 @@
 all:
+	cd ${OUT_DIR}/build && \
 	cmake -DPORT="JSCOnly" \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-		-B${OUT_DIR}/build \
+		--build ${OUT_DIR}/build \
 		-DCMAKE_BUILD_TYPE=Debug \
 		-GNinja \
 		-DDEVELOPER_MODE=ON \
 		-DENABLE_EXPERIMENTAL_FEATURES=ON \
 		-DENABLE_STATIC_JSC=ON \
 		-DUSE_THIN_ARCHIVES=OFF \
-	"./WebKit"
+	"${CARGO_MANIFEST_DIR}/WebKit"
 
 clean:
 	cd WebKit && make clean
