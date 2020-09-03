@@ -1,4 +1,4 @@
-name: build-linux
+name: build-musl
 
 on:
   push:
@@ -29,14 +29,13 @@ jobs:
     - name: musl-static-build
       run: |
         set -x
-        docker run -it \
+        docker run \
             -v /home/runner/jscjs-sys/target:/home/rust/jscjs-sys \
             -v /home/runner/.cargo/git:/home/rust/.cargo/git \
             -v /home/runner/.cargo/registry:/root/.cargo/registry \
             --name build-image \
             registry.gitlab.com/rust_musl_docker/image:stable-latest \
-            /bin/bash -c "\
-                          apt update && \
+            /bin/bash -c "apt update && \
                             apt install -y ninja-build && \
                             cargo build -vv --target=x86_64-unknown-linux-musl"
 
