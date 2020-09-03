@@ -1,8 +1,0 @@
-#include "b3/air/AirGenerate.cpp"
-#include "b3/air/AirGenerated.cpp"
-#include "b3/air/AirHandleCalleeSaves.cpp"
-#include "b3/air/AirInsertionSet.cpp"
-#include "b3/air/AirInst.cpp"
-#include "b3/air/AirKind.cpp"
-#include "b3/air/AirLogRegisterPressure.cpp"
-#include "b3/air/AirLowerAfterRegAlloc.cpp"

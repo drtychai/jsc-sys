@@ -1,8 +1,0 @@
-#include "runtime/JSCConfig.cpp"
-#include "runtime/JSCJSValue.cpp"
-#include "runtime/JSCPtrTag.cpp"
-#include "runtime/JSCallee.cpp"
-#include "runtime/JSCell.cpp"
-#include "runtime/JSCustomGetterSetterFunction.cpp"
-#include "runtime/JSDataView.cpp"
-#include "runtime/JSDataViewPrototype.cpp"

@@ -1,8 +1,0 @@
-#include "runtime/JSArrayBufferPrototype.cpp"
-#include "runtime/JSArrayBufferView.cpp"
-#include "runtime/JSArrayIterator.cpp"
-#include "runtime/JSAsyncFunction.cpp"
-#include "runtime/JSAsyncGenerator.cpp"
-#include "runtime/JSAsyncGeneratorFunction.cpp"
-#include "runtime/JSBigInt.cpp"
-#include "runtime/JSBoundFunction.cpp"

@@ -1,8 +1,0 @@
-#include "runtime/JSDateMath.cpp"
-#include "runtime/JSDestructibleObjectHeapCellType.cpp"
-#include "runtime/JSFinalizationRegistry.cpp"
-#include "runtime/JSFunction.cpp"
-#include "runtime/JSGenerator.cpp"
-#include "runtime/JSGeneratorFunction.cpp"
-#include "runtime/JSGlobalLexicalEnvironment.cpp"
-#include "runtime/JSGlobalObject.cpp"

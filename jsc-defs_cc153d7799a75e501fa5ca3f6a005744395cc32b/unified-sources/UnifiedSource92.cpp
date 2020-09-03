@@ -1,8 +1,0 @@
-#include "runtime/AbstractModuleRecord.cpp"
-#include "runtime/AggregateError.cpp"
-#include "runtime/AggregateErrorConstructor.cpp"
-#include "runtime/AggregateErrorPrototype.cpp"
-#include "runtime/ArgList.cpp"
-#include "runtime/ArrayBuffer.cpp"
-#include "runtime/ArrayBufferView.cpp"
-#include "runtime/ArrayConstructor.cpp"

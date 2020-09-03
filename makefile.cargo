@@ -1,15 +1,18 @@
+###-CMAKE_C_FLAGS="-target x86_64-unknown-linux-musl" && \
+
 all:
 	cd ${OUT_DIR}/build && \
 	cmake -DPORT="JSCOnly" \
-		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 		--build ${OUT_DIR}/build \
-		-DCMAKE_BUILD_TYPE=Debug \
 		-GNinja \
-		-DDEVELOPER_MODE=ON \
-		-DENABLE_EXPERIMENTAL_FEATURES=ON \
+		-DCMAKE_MAKE_PROGRAM=ninja \
 		-DENABLE_STATIC_JSC=ON \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=OFF \
+		-DDEVELOPER_MODE=OFF \
+		-DENABLE_EXPERIMENTAL_FEATURES=OFF \
 		-DUSE_THIN_ARCHIVES=OFF \
-	"${CARGO_MANIFEST_DIR}/WebKit"
+	"${CARGO_MANIFEST_DIR}/WebKit" && \
+	ninja -C ${OUT_DIR}/build
 
 clean:
 	cd WebKit && make clean

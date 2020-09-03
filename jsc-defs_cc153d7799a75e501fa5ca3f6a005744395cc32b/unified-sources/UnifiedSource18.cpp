@@ -1,8 +1,0 @@
-#include "b3/air/AirAllocateRegistersByGraphColoring.cpp"
-#include "b3/air/AirAllocateStackByGraphColoring.cpp"
-#include "b3/air/AirArg.cpp"
-#include "b3/air/AirBasicBlock.cpp"
-#include "b3/air/AirBlockInsertionSet.cpp"
-#include "b3/air/AirBreakCriticalEdges.cpp"
-#include "b3/air/AirCCallSpecial.cpp"
-#include "b3/air/AirCCallingConvention.cpp"

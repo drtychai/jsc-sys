@@ -1,8 +1,0 @@
-#include "runtime/CustomGetterSetter.cpp"
-#include "runtime/DOMAttributeGetterSetter.cpp"
-#include "runtime/DataView.cpp"
-#include "runtime/DateConstructor.cpp"
-#include "runtime/DateConversion.cpp"
-#include "runtime/DateInstance.cpp"
-#include "runtime/DatePrototype.cpp"
-#include "runtime/DeferredWorkTimer.cpp"
