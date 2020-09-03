@@ -4,21 +4,20 @@ version = "0.0.1"
 authors = ["bynx <drtychai@protonmail.com>"]
 description = "System crate for the Webkit JavaScriptCore JavaScript engine."
 repository = "https://github.com/drtychai/jsc-sys"
-license = "MPL-2.0"
 edition = "2018"
 build = "build.rs"
+license = "MPL-2.0"
+include = [ "jsc-defs_*/**", "WebKit/WebKitBuild/Debug/JavaScriptCore/**" ]
 
 [lib]
 name = "jscjs_sys"
 path = "src/lib.rs"
+crate-type = ["staticlib", "cdylib", "lib"]
 
 [dependencies]
 libc = "0.2.76"
-libz-sys = "1.1.1"
 
 [build-dependencies]
-bindgen = "0.55.1"
+bindgen = "*"
 pkg-config = "0.3.14"
-cmake = "0.1.44"
-clang = "1.0.1"
 walkdir = "2.3.1"

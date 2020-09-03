@@ -3,4 +3,6 @@
 #![allow(non_snake_case)]
 #![allow(improper_ctypes)]
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+//pub use generated::*;
+//mod generated { include!(concat!(env!("OUT_DIR"), "/build/bindings.rs")); }
+include!(concat!(env!("OUT_DIR"), "/build/bindings.rs"));

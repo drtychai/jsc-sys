@@ -1,5 +1,4 @@
 /target/
-Cargo.lock
+**/*.lock
 **/*.rs.bk
-**/WebKit
-**/clang+llvm*
+build.ninja

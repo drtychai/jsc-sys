@@ -1,4 +1,5 @@
-use jsc_sys::*;
+extern crate jscjs_sys;
+use jscjs_sys::*;
 use std::ptr::{null, null_mut};
 
 macro_rules! retain_release {
@@ -275,12 +276,11 @@ impl String {
 //}
 
 fn log(ctx: Context, this: Object, arguments: Vec<Value>) -> () {
-//    let v = std::string::String::try_from(&arguments[0]).unwrap();
-//    println!("Hello world, {}!", v);
-//    Ok(ctx.undefined())
-//    Ok()
+    //    let v = std::string::String::try_from(&arguments[0]).unwrap();
+    //    println!("Hello world, {}!", v);
+    //    Ok(ctx.undefined())
+    //    Ok()
 }
-
 
 fn main() {
     let ctx_group = ContextGroup::new();
