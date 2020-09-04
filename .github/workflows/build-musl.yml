@@ -45,5 +45,4 @@ jobs:
     - name: cleanup
       run: |
         docker kill rust_musl_docker >/dev/null
-        docker rmi registry.gitlab.com/rust_musl_docker/image
-        tar zcvf /home/runner/x86_64-unknown-linux-musl_debug-build.tar.gz /home/rust/jsc-sys/jsc-sys/target/x86_64-unknown-linux-musl/debug/build/*
+        tar -C /home/runner zcvf x86_64-unknown-linux-musl_debug-build.tar.gz jsc-sys/*/target/x86_64-unknown-linux-musl/debug/build/*
