@@ -1,5 +1,3 @@
-###-CMAKE_C_FLAGS="-target x86_64-unknown-linux-musl" && \
-
 all:
 	cd ${OUT_DIR}/build && \
 	cmake -DPORT="JSCOnly" \

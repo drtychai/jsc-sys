@@ -1,16 +1,16 @@
 extern crate bindgen;
 use bindgen::{builder, Bindings};
 
-use std::{env, fs};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::result::Result;
+use std::{env, fs};
 
 /// Returns an std::path::PathBuf triplet representing the enironment variables:
 ///
-///     CARGO_MANIFEST_DIR                             : Directory container our Cargo.toml
+///     CARGO_MANIFEST_DIR                             : Directory containing our Cargo.toml
 ///     OUT_DIR                                        : Build output directroy
-///     OUT_DOR/DerivedSources/ForwardingHeaders       : JSC static lib; shim lives in ./JavaScriptCore/JavaScript.h
+///     OUT_DOR/DerivedSources/ForwardingHeaders       : JSC definitions used to generate bindings
 ///
 /// If an environment variable is not set, the current workding directory is used.
 fn get_paths_from_env() -> (PathBuf, PathBuf, PathBuf) {
@@ -32,7 +32,8 @@ fn get_paths_from_env() -> (PathBuf, PathBuf, PathBuf) {
         // Set build directory and target header to WebKit defaults
         (
             PathBuf::from(env::current_dir().unwrap()).join("Webkit/WebKitBuild"),
-            PathBuf::from(env::current_dir().unwrap()).join("Webkit/WebKitBuild/Debug")
+            PathBuf::from(env::current_dir().unwrap())
+                .join("Webkit/WebKitBuild/Debug")
                 .join("DerivedSources/ForwardingHeaders")
                 .join("JavaScriptCore/JavaScript.h"),
         )
@@ -56,10 +57,9 @@ fn generate_bindings(target_headers: &PathBuf) -> Result<Bindings, ()> {
                 .clone()
                 .join("JavaScriptCore/JavaScript.h")
                 .to_str()
-                .unwrap()
-            )
+                .unwrap(),
+        )
         .clang_arg(target_toolchain)
-        //.clang_arg(format!("-I{}", target_headers.display())) //-I helps linux but crashes macos
         // Tell cargo to invalidate the built crate whenever any of the included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()
@@ -79,18 +79,15 @@ fn main() {
         .unwrap();
     assert!(result.success());
 
-    if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
-        let bindings = generate_bindings(&jsc_shim_h)
-            .expect("Builder could not generate bindings D:");
+    if (cfg!(target_os = "macos") || cfg!(target_os = "linux")) && cfg!(target_arch = "x86_64") {
+        let bindings =
+            generate_bindings(&jsc_shim_h).expect("Builder could not generate bindings D:");
 
         bindings
             .write_to_file(build_dir.join("bindings.rs"))
             .expect("Couldn't write bindings!");
     } else {
-        let supported_targets = [
-            "x86_64-unknown-linux-musl",
-            "x86_64-apple-darwin",
-        ];
+        let supported_targets = ["x86_64-unknown-linux-musl", "x86_64-apple-darwin"];
         panic!(
             "Current OS and/or Arch not supported... here are the supported builds: {:?}",
             supported_targets
