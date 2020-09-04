@@ -1,30 +1,16 @@
-UNAME := $(shell uname -s)
-CWD := $(shell pwd)
-#LLVM_TOOLCHAIN_DARWIN := $(CWD)/llvm-0.0.0-x86_64-toolchains/clang+llvm-9.0.0-x86_64-darwin-apple
-#LLVM_TOOLCHAIN_LINUX := $(CWD)/llvm-0.0.0-x86_64-toolchains/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04
-LLVM_TOOLCHAIN_LINUX := $(CWD)/clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04
-MACOS_TOOLCHAIN := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr
+all:
+	cd ${OUT_DIR}/build && \
+	cmake -DPORT="JSCOnly" \
+		--build ${OUT_DIR}/build \
+		-GNinja \
+		-DCMAKE_MAKE_PROGRAM=ninja \
+		-DENABLE_STATIC_JSC=ON \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=OFF \
+		-DDEVELOPER_MODE=OFF \
+		-DENABLE_EXPERIMENTAL_FEATURES=OFF \
+		-DUSE_THIN_ARCHIVES=OFF \
+	"${CARGO_MANIFEST_DIR}/WebKit" && \
+	ninja -C ${OUT_DIR}/build
 
-DetectOS:
-	-@make $(UNAME)-all
-
-Darwin-all:
-	@mkdir -p webkit/Source/WebCore
-	@mkdir -p webkit/Source/WebKit
-
-	export CLANG_PATH=$(MACOS_TOOLCHAIN)/bin/clang
-	export CC=$(MACOS_TOOLCHAIN)/bin/clang
-	export CXX=$(MACOS_TOOLCHAIN)/bin/clang++
-
-	cd webkit && ./Tools/Scripts/build-jsc --copy-libraries --debug --cmakeargs="-DPORT=JSCOnly -DENABLE_STATIC_JSC=ON -DUSE_GLIB"
-
-Linux-all:
-	@mkdir -p webkit/Source/WebCore
-	@mkdir -p webkit/Source/WebKit
-
-	export LIBCLANG_STATIC_PATH=$(LLVM_TOOLCHAIN_LINUX)/lib/libclang.so
-	export LLVM_CONFIG_PATH=$(LLVM_TOOLCHAIN_LINUX)/bin/llvm-config
-	export CLANG_PATH=$(LLVM_TOOLCHAIN_LINUX)/bin/clang
-
-	cd webkit && ./Tools/Scripts/build-jsc --copy-libraries --debug --cmakeargs="-DPORT=JSCOnly -DENABLE_STATIC_JSC=ON -DUSE_GLIB"
-
+clean:
+	cd WebKit && make clean
