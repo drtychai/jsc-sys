@@ -29,18 +29,13 @@ jobs:
     - name: pull-musl-image
       run: docker pull registry.gitlab.com/rust_musl_docker/image:stable-latest
 
-    - name: run-musl-image
+    - name: build-static-musl-lib
       run: |
         docker run --rm --detach \
           --name rust_musl_docker \
           -v /home/runner/work/jsc-sys:/home/rust \
           -v /home/runner/.cargo:/home/rust/.cargo \
           registry.gitlab.com/rust_musl_docker/image:stable-latest \
-          bash
-
-    - name: exec-musl-build
-      run: |
-        docker exec rust_musl_docker \
           bash -c "\
             apt update && \
             apt install -y ninja-build && \
