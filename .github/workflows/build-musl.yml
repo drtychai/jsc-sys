@@ -31,7 +31,7 @@ jobs:
 
     - name: run-musl-image
       run: |
-        docker run  --rm --detach -it \
+        docker run --rm --detach \
           --name rust_musl_docker \
           -v /home/runner/work/jsc-sys:/home/rust \
           -v /home/runner/.cargo:/home/rust/.cargo \
@@ -47,9 +47,8 @@ jobs:
             cd /home/rust/jsc-sys && \
             cargo build -vv --target=x86_64-unknown-linux-musl"
 
-        echo "Build complete"
-        docker cp build-image:/home/rust/jsc-sys/**/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/build/bin/jsc /home/runner/work/jsc"
-
-        docker rm rust_musl_docker
+    - name: cleanup
+      run: |
+        docker kill rust_musl_docker >/dev/null
         docker rmi registry.gitlab.com/rust_musl_docker/image
-        tar zcvf /home/runner/x86_64-unknown-linux-musl_debug-build.tar.gz /home/rust/jsc-sys/target/x86_64-unknown-linux-musl/debug/build/jscjs-sys-*/out/*
+        tar zcvf /home/runner/x86_64-unknown-linux-musl_debug-build.tar.gz /home/rust/jsc-sys/jsc-sys/target/x86_64-unknown-linux-musl/debug/build/*
