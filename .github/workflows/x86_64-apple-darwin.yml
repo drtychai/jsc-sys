@@ -1,4 +1,4 @@
-name: build-macos
+name: x86_64-apple-darwin
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-macos:
     runs-on: macos-latest
 
     steps:
