@@ -10,6 +10,7 @@ license = "AGPL-3.0"
 edition = "2018"
 exclude = [
     "**/WebKit",
+    "**/*.yml",
 ]
 
 [dependencies]

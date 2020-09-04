@@ -45,4 +45,3 @@ Provided below are some practical examples of what functionalities this crate al
 [1]: https://trac.webkit.org/wiki/JavaScriptCore
 [2]: https://github.com/WebKit/webkit/tree/master/Source/JavaScriptCore/API
 [3]: https://developer.apple.com/documentation/javascriptcore
-
