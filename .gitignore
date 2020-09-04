@@ -1,4 +1,4 @@
-/target/
-**/*.lock
+target
+Cargo.lock
 **/*.rs.bk
 build.ninja
