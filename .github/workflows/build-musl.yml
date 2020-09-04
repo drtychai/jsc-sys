@@ -40,8 +40,8 @@ jobs:
 
     - name: exec-musl-build
       run: |
-        docker exec -it rust_musl_docker \
-          bash -c " \
+        docker exec rust_musl_docker \
+          bash -c "\
             apt update && \
             apt install -y ninja-build && \
             cd /home/rust/jsc-sys && \
