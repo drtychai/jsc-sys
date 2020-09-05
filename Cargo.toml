@@ -1,5 +1,5 @@
 [package]
-name = "jscjs-sys"
+name = "jscjs_sys"
 description = "System crate providing bindings to the Webkit JavsScript engine, JavaScriptCore"
 repository = "https://github.com/drtychai/jsc-sys"
 version = "0.0.2"
@@ -9,6 +9,7 @@ build = "build.rs"
 license = "AGPL-3.0"
 edition = "2018"
 exclude = [
+    "*.lock",
     "**/WebKit",
     "**/*.yml",
 ]

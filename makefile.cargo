@@ -1,16 +1,21 @@
-all:
-	cd ${OUT_DIR}/build && \
-	cmake -DPORT="JSCOnly" \
-		--build ${OUT_DIR}/build \
-		-GNinja \
-		-DCMAKE_MAKE_PROGRAM=ninja \
-		-DENABLE_STATIC_JSC=ON \
-		-DCMAKE_EXPORT_COMPILE_COMMANDS=OFF \
-		-DDEVELOPER_MODE=OFF \
-		-DENABLE_EXPERIMENTAL_FEATURES=OFF \
-		-DUSE_THIN_ARCHIVES=OFF \
-	"${CARGO_MANIFEST_DIR}/WebKit" && \
-	ninja -C ${OUT_DIR}/build
+cmake_args ?= -DPORT="JSCOnly"
+cmake_args += -GNinja
+cmake_args += -DCMAKE_MAKE_PROGRAM=ninja
+cmake_args += -DENABLE_STATIC_JSC=ON
+cmake_args += -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF
+cmake_args += -DDEVELOPER_MODE=OFF
+cmake_args += -DENABLE_EXPERIMENTAL_FEATURES=OFF
+cmake_args += -DUSE_THIN_ARCHIVES=OFF
+build_dest ?= ${OUT_DIR}/build
 
-clean:
-	cd WebKit && make clean
+# Webkit source tree implicitly set to ${JSC_SRC}
+# Falls back to CARGO_MANIFEST_DIR/WebKit if unset
+webkit_src ?= $(shell if [ -n "$${JSC_SRC}" ];then echo $${JSC_SRC}; else echo "${CARGO_MANIFEST_DIR}/WebKit";fi)
+build: $(build_dest)
+	@cmake $(cmake_args) -S $(webkit_src) -B $(build_dest)
+	@ninja -C $(build_dest)
+
+clean: $(webkit_src)
+	@make -C $(webkit_src) clean
+
+.PHONY: webkit_src build_dest cmake_args build clean

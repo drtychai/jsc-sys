@@ -19,6 +19,30 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 
 [license]: https://img.shields.io/crates/l/jscjs-sys.svg
 
+## Building
+
+```sh
+#
+#  Clone crate and WebKit source (included as a submodule)
+#
+➜ git clone --recursive https://github.com/drtychai/jsc-sys
+
+                 [ ... ]
+
+#
+#  No special caveats to builds
+#
+➜ cargo build [-vv] [--target <TRIPLE>]
+
+                 [ ... ]
+
+#
+#  Packaging requires the `JSC_SRC` environment variable
+#
+➜ export JSC_SRC=/abs/path/to/webkit && cargo package [-vv] [--target <TRIPLE>]
+```
+
+
 ## Usage
 Add the following to your `Cargo.toml`:
 

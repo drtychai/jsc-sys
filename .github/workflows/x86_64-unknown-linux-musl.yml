@@ -2,7 +2,9 @@ name: musl
 
 on:
   push:
-    branches: [ dev ]
+    branches:
+        - master
+        - dev
   pull_request:
     branches: [ master ]
 
