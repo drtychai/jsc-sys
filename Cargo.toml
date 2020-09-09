@@ -1,21 +1,18 @@
 [package]
-name = "jscjs_sys"
-description = "System crate providing bindings to the Webkit JavsScript engine, JavaScriptCore"
-repository = "https://github.com/drtychai/jsc-sys"
-version = "0.0.2"
-authors = ["bynx <drtychai@protonmail.com>"]
-links = "jscjs"
 build = "build.rs"
-license = "AGPL-3.0"
-edition = "2018"
-exclude = [
-    "*.lock",
-    "**/WebKit",
-    "**/*.yml",
-]
+name = "jscjs_sys"
+version = "0.1.0"
+
+[lib]
+name = "jscjs_sys"
+path = "src/lib.rs"
+
+[[bin]]
+name = "runner"
+path = "src/main.rs"
 
 [dependencies]
-libc = "0.2.76"
+url = "*"
 
 [build-dependencies]
-bindgen = "0.55.1"
+bindgen = "*"

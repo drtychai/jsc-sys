@@ -1,27 +1,276 @@
-#![crate_name = "jscjs_sys"]
-#![crate_type = "rlib"]
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+#![allow(warnings)]
 
-#![allow(non_upper_case_globals, non_camel_case_types, non_snake_case, improper_ctypes)]
+extern crate url;
+use std::ptr;
+use std::ffi;
+use std::default::Default;
 
-//!
-//! This crate contains Rust bindings to the Webkit JavaScript engine, [JavaScriptCore][1],
-//! developed by Apple.
-//!
-//! These bindings are designed to be a fairly straightforward translation to the low-level C API,
-//! while taking advantage of Rust's memory safety. For more about the JavaScriptCore API, see the
-//! API [source][2] and the [documentation][3].
-//!
-//! Provided below are some practical examples of what functionalities this crate allows:
-//!   - Create a global scripting context, used to create and execute JavaScript objects and code
-//!   - Work natively with objects, parameters
-//!   - Build JavaScript functions out of strings
-//!   - Associate C callbacks to user-definted "classes" of objects
-//!   - Attach C callbacks to "classes", handles responses to an action (e.g., getters/setters, promises, fn cals)
-//!   - Load JavaScript files based on designated names and starting line-numbers
-//!
-//! [1]: https://trac.webkit.org/wiki/JavaScriptCore
-//! [2]: https://github.com/WebKit/webkit/tree/master/Source/JavaScriptCore/API
-//! [3]: https://developer.apple.com/documentation/javascriptcore
-//!
+pub mod api {
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
 
-include!(concat!(env!("OUT_DIR"), "/build/bindings.rs"));
+pub struct VM {
+    raw: api::JSContextGroupRef
+}
+
+impl VM {
+    pub fn new() -> VM {
+        unsafe {
+            VM {
+                raw: api::JSContextGroupCreate(),
+            }
+        }
+    }
+}
+
+impl Drop for VM {
+    fn drop(&mut self) {
+        unsafe {
+            api::JSContextGroupRelease(self.raw);
+        }
+    }
+}
+
+// JSC managed String.
+pub struct String {
+    raw: api::JSStringRef
+}
+
+impl String {
+    pub fn new(s: &str) -> String {
+        let cstr = ffi::CString::new(s.as_bytes()).unwrap();
+        unsafe {
+            String {
+                raw: api::JSStringCreateWithUTF8CString(cstr.as_ptr())
+            }
+        }
+    }
+
+    pub fn length(&self) {
+        unsafe {
+            api::JSStringGetLength(self.raw);
+        }
+    }
+}
+
+impl Drop for String {
+    fn drop(&mut self) {
+        unsafe {
+            api::JSStringRelease(self.raw);
+        }
+    }
+}
+
+pub struct Context {
+    raw: api::JSGlobalContextRef
+}
+
+impl Context {
+    pub fn new(vm: &VM) -> Context {
+        unsafe {
+            Context {
+                raw: api::JSGlobalContextCreateInGroup(vm.raw, ptr::null_mut()),
+            }
+        }
+    }
+}
+
+impl Drop for Context {
+    fn drop(&mut self) {
+        unsafe {
+            api::JSGlobalContextRelease(self.raw);
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Value {
+    raw: api::JSValueRef
+}
+
+pub type JSResult<T> = Result<T, Value>;
+
+// Value is GC-managed. So it does not implement Drop trait.
+impl Value {
+    pub fn with_boolean(ctx: &Context, value: bool) -> Value {
+        unsafe {
+            Value {
+                raw: api::JSValueMakeBoolean(ctx.raw, value)
+            }
+        }
+    }
+
+    pub fn with_number(ctx: &Context, value: f64) -> Value {
+        unsafe {
+            Value {
+                raw: api::JSValueMakeNumber(ctx.raw, value)
+            }
+        }
+    }
+
+    pub fn with_string(ctx: &Context, value: &str) -> Value {
+        unsafe {
+            Value {
+                raw: api::JSValueMakeString(ctx.raw, String::new(value).raw)
+            }
+        }
+    }
+
+    pub fn null(ctx: &Context) -> Value {
+        unsafe {
+            Value {
+                raw: api::JSValueMakeNull(ctx.raw)
+            }
+        }
+    }
+
+    pub fn undefined(ctx: &Context) -> Value {
+        unsafe {
+            Value {
+                raw: api::JSValueMakeUndefined(ctx.raw)
+            }
+        }
+    }
+
+    pub fn is_boolean(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsBoolean(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_null(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsNull(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_undefined(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsUndefined(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_number(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsNumber(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_string(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsString(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_object(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsObject(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_array(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsArray(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_date(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueIsDate(ctx.raw, self.raw)
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.raw == ptr::null()
+    }
+
+    pub fn to_number(&self, ctx: &Context) -> JSResult<f64> {
+        unsafe {
+            let mut exception : api::JSValueRef = ptr::null_mut();
+            let result = api::JSValueToNumber(ctx.raw, self.raw, &mut exception);
+            if exception == ptr::null() {
+                Ok(result)
+            } else {
+                Err(Value { raw: exception })
+            }
+        }
+    }
+
+    pub fn to_boolean(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSValueToBoolean(ctx.raw, self.raw)
+        }
+    }
+}
+
+impl Default for Value {
+    fn default() -> Value {
+        Value { raw: ptr::null() }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Object {
+    raw: api::JSObjectRef
+}
+
+impl Object {
+    pub fn array(ctx: &Context, arguments: &[Value]) -> JSResult<Object> {
+        unsafe {
+            let mut exception : api::JSValueRef = ptr::null_mut();
+            let result = api::JSObjectMakeArray(ctx.raw, arguments.len() as api::size_t, arguments.as_ptr() as *mut api::JSValueRef, &mut exception);
+            if exception == ptr::null_mut() {
+                Ok(Object { raw: result })
+            } else {
+                Err(Value { raw: exception })
+            }
+        }
+    }
+
+    pub fn is_constructor(&self, ctx: &Context) -> bool {
+        unsafe {
+            api::JSObjectIsConstructor(ctx.raw, self.raw)
+        }
+    }
+}
+
+impl Default for Object {
+    fn default() -> Object {
+        Object { raw: ptr::null_mut() }
+    }
+}
+
+impl Context {
+    pub fn evaluate_script(&self, script: &str, receiver: &Object, url: url::Url, starting_line_number: i32) -> JSResult<Value>
+    {
+        let string = String::new(script);
+        let source = String::new(url.as_str());
+        unsafe {
+            let mut exception : api::JSValueRef = ptr::null_mut();
+            let result = api::JSEvaluateScript(self.raw, string.raw, receiver.raw, source.raw, starting_line_number, &mut exception);
+            if exception == ptr::null_mut() {
+                Ok(Value { raw: result })
+            } else {
+                Err(Value { raw: exception })
+            }
+        }
+    }
+
+    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<bool>
+    {
+        let string = String::new(script);
+        let source = String::new(url.as_str());
+        unsafe {
+            let mut exception : api::JSValueRef = ptr::null_mut();
+            let result = api::JSCheckScriptSyntax(self.raw, string.raw, source.raw, starting_line_number, &mut exception);
+            if exception == ptr::null_mut() {
+                Ok(result)
+            } else {
+                Err(Value { raw: exception })
+            }
+        }
+    }
+}
