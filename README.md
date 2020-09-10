@@ -52,7 +52,17 @@ jscjs-sys = "0.0.2"
 ```
 
 All necessary definitions are provided to easily interoperate with the JSC API on all `x86_64` *nix
-architectures supported by Rust. This includes: `JSContextRef`, `JSValueRef`, `JSClassRef`, `JSObjectref`, and `JSTypeRef`
+architectures supported by Rust. This crate explicity exports:
+
+
+|      JavaScriptCore.h   |      jscjs_sys         |
+|:-----------------------:|:----------------------:|
+| `JSContextGroupRef`     |  `jscjs_sys::VM`       |
+| `JSGlobalContectRef`    |  `jscjs_sys::Context`  |
+| `JSString`              |  `jscjs_sys::Sting`    |
+|  `JSValueRef`           |  `jscjs_sys::Value`    |
+|  `JSObjectref`          |  `jscjs_sys::Object`   |
+
 
 These bindings are designed to be a fairly straightforward translation to the low-level C API,
 while taking advantage of Rust's memory safety. For more about the JavaScriptCore API, see the

@@ -24,4 +24,7 @@
 //! [3]: https://developer.apple.com/documentation/javascriptcore
 //!
 
-include!(concat!(env!("OUT_DIR"), "/build/bindings.rs"));
+pub mod runtime;
+
+pub use self::runtime::api;
+pub use self::runtime::{VM, Context, String, Value, Object};
