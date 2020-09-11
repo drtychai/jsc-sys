@@ -17,11 +17,11 @@ MAKE=$(which make)
 CMAKE=$(which cmake)
 
 # Number of parallel c/make jobs
-N_JOBS=$(sysctl -n hw.activecpu)
+N_JOBS=$(nproc)
 
 # Webkit source tree implicitly set to ${JSC_SRC} ; Falls back to CARGO_MANIFEST_DIR/WebKit if unset
-WEBKIT_SRC=$(if [ -n "$${JSC_SRC}" ];then echo $${JSC_SRC}; else echo "${CARGO_MANIFEST_DIR}/WebKit";fi)
-BUILD_DEST=${OUT_DIR}/build
+WEBKIT_SRC=$(if [ -n "${JSC_SRC}" ];then echo ${JSC_SRC}; else echo "${CARGO_MANIFEST_DIR}/WebKit";fi)
+BUILD_DIR=${OUT_DIR}/build
 
 # Additional libraries needed for x86_64-unknown-linux-gnu build
 LINK_GLIB=$(pkg-config --cflags --libs glib-2.0)
@@ -62,6 +62,7 @@ CMAKE_ARGS="${CMAKE_ARGS} -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 #                       Generate Makefile and Build                           #
 #                                                                             #
 ###############################################################################
-cd ${WEBKIT_SRC}
-${CMAKE} -j${N_JOBS} ${CXX_FLAGS} ${CMAKE_ARGS} ${WEBKIT_SRC}
+mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
+#${WEBKIT_SRC}/build
+${CMAKE} -j${N_JOBS} ${CXX_FLAGS} ${CMAKE_ARGS} -S${WEBKIT_SRC} -B${BUILD_DIR}
 ${MAKE} -j${N_JOBS} ${LINK_GLIB}

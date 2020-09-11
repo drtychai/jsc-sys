@@ -1,7 +1,12 @@
 #![crate_name = "jscjs_sys"]
-#![crate_type = "rlib"]
-
-#![allow(non_upper_case_globals, non_camel_case_types, non_snake_case, improper_ctypes)]
+//#![crate_type = "rlib"]
+#![allow(
+    non_upper_case_globals,
+    non_camel_case_types,
+    non_snake_case,
+    improper_ctypes,
+    deprecated
+)]
 
 //!
 //! This crate contains Rust bindings to the Webkit JavaScript engine, [JavaScriptCore][1],
@@ -24,7 +29,10 @@
 //! [3]: https://developer.apple.com/documentation/javascriptcore
 //!
 
-pub mod runtime;
+mod runtime;
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/build/bindings.rs"));
+}
 
-pub use self::runtime::api;
-pub use self::runtime::{VM, Context, String, Value, Object};
+pub use self::runtime::*; //{Context, Object, String, Value, VM};
+pub use generated::root as jsapi;
