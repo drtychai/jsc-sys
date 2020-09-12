@@ -1,29 +1,20 @@
+#![no_builtins]
+#![no_std]
+#![allow(
+    non_upper_case_globals,
+    non_camel_case_types,
+    non_snake_case,
+    improper_ctypes,
+    deprecated,
+)]
+
 extern crate bindgen;
 
-use path::{Path, PathBuf};
 use process::Command;
+use path::{Path, PathBuf};
 use std::{env, path, process};
 
-//const ENV_VARS: &'static [&'static str] = &[
-//    "AR",
-//    "AS",
-//    "CC",
-//    "CFLAGS",
-//    "CLANGFLAGS",
-//    "CPP",
-//    "CPPFLAGS",
-//    "CXX",
-//    "CXXFLAGS",
-//    "MAKE",
-//    "CARGO_MANIFEST_DIR",
-//    "OUT_DIR",
-//    "GLIB_INCLUDE_DIR",
-//];
-//
-//const EXTRA_FILES: &'static [&'static str] = &["makefile.cargo", "src/runtime.rs"];
-
 fn main() {
-    //let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
     println!("cargo:outdir={}", build_dir.display());
 
@@ -48,16 +39,19 @@ fn cc_flags(build_dir: &Path) -> Vec<&'static str> {
     let mut result = vec![
         "-DRUST_BINDGEN",
         "-DENABLE_STATIC_JSC=ON",
-        "-DCMAKE_C_COMPILER=/usr/bin/clang",
-        "-DCMAKE_CXX_COMPILER=/usr/bin/clang++",
+        "-DCMAKE_C_COMPILER=/usr/bin/x86_64-alpine-linux-musl-gcc",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/x86_64-alpine-linux-musl-g++",
         "-DCMAKE_CXX_FLAGS='-O3 -lrt'",
     ];
 
     result.extend(&[
+        "-j 6",
+        "--max-load 8",
         "-Wsuggest-override",
         "-Wall -Werror -Wunused-but-set-variable -ftree-slp-vectorize",
         // GLib headers
         "-I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include",
+
         "-fno-sized-deallocation",
         "-Wno-unused-parameter",
         "-Wno-invalid-offsetof",
@@ -69,12 +63,12 @@ fn cc_flags(build_dir: &Path) -> Vec<&'static str> {
 
 fn build_jsapi(build_dir: &Path) {
     let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-    let result = Command::new("bash")
-        .args(&[
-            "-c",
-            "/home/vagrant/jsc-sys/build__x86_64-unknown-linux-gnu.sh",
-        ])
+    let result = Command::new("sh")
+        .args(&["-c", "/jsc-sys/build__x86_64-unknown-linux-gnu.sh"])
+        .env("CC", "/usr/bin/x86_64-alpine-linux-musl-gcc")
+        .env("CXX","/usr/bin/x86_64-alpine-linux-musl-g++")
         .env("JSC_SRC", &cargo_manifest_dir.join("WebKit"))
+        .env("OUT_DIR", PathBuf::from(env::var_os("OUT_DIR").unwrap()))
         .env("NO_RUST_PANIC_HOOK", "1")
         .status()
         .expect("Failed to run `make`");
@@ -102,10 +96,8 @@ fn build_jsapi(build_dir: &Path) {
             println!("cargo:rustc-link-lib={}", library);
         }
     }
-    println!("cargo:rustc-link-search={}", build_dir.join("lib").display());
-    println!("cargo:rustc-link-lib=:libJavaScriptCore.a");
-
-
+    println!("cargo:rustc-link-=static=search={}", build_dir.join("lib").display());
+    println!("cargo:rustc-link-lib=static=libJavaScriptCore.a");
 }
 
 /// Invoke bindgen on the JSAPI headers to produce raw FFI bindings for use from
@@ -114,8 +106,16 @@ fn build_jsapi(build_dir: &Path) {
 /// To add or remove which functions, types, and variables get bindings
 /// generated, see the `const` configuration variables below.
 fn build_jsapi_bindings(build_dir: &Path) {
-    let jsc_include_dir = build_dir.join("DerivedSources").join("ForwardingHeaders");
-    let wrapper_h = jsc_include_dir.join("JavaScriptCore").join("JavaScript.h");
+    let jsc_include_dir = build_dir
+        .join("DerivedSources")
+        .join("ForwardingHeaders")
+        .join("JavaScriptCore")
+        .join("JavaScriptCore.h")
+        .to_str()
+        .expect("UTF-8");;
+
+    let wrapper_h = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("wrapper.h");
+    //let wrapper_h = jsc_include_dir.join("JavaScriptCore").join("JavaScriptCore.h");
 
     let mut config = bindgen::CodegenConfig::all();
     config &= !bindgen::CodegenConfig::CONSTRUCTORS;
@@ -125,21 +125,24 @@ fn build_jsapi_bindings(build_dir: &Path) {
     config &= !bindgen::CodegenConfig::TYPES;
     config &= !bindgen::CodegenConfig::FUNCTIONS;
 
+    let mut lib_arg = String::from("-L").to_owned();
+    lib_arg
+        .push_str("-L")
+        .push_str(build_dir)
+        .push_str(" -Wl,--whole-archive -l:libbmalloc.a -l:libWTF.a -l:libJavaScriptCore.a -lz")
+        .push_str(
+            build_dir
+            .join("lib")
+            .to_str()
+            .expect("UTF-8")
+            );
+
     let mut builder = bindgen::Builder::default()
         .use_core()
         .rust_target(bindgen::RustTarget::Stable_1_40)
-        .header(wrapper_h
-            .clone()
-            .to_str()
-            .expect("UTF-8")
-        )
+        .header(wrapper_h)
         // Load our JSC (library) archives
-        .raw_line(
-            format!(
-                "-L{} -Wl,--whole-archive -l:libbmalloc.a -l:libWTF.a -l:libJavaScriptCore.a -lz",
-                build_dir.join("lib").to_str().expect("UTF-8")
-            )
-        )
+        .raw_line(lib_arg)
         // Translate every enum with the "rustified enum" strategy
         .rustified_enum(".*")
         .size_t_is_usize(true)
@@ -183,13 +186,13 @@ fn build_jsapi_bindings(build_dir: &Path) {
 /// Types which we want to generate bindings for (and every other type they
 /// transitively use).
 const WHITELIST_TYPES: &'static [&'static str] = &[
-    "JS.*",
-    //"JSC::.*",
-    //"JSGlobalContextRef",
-    //"JSContextGroupRef",
-    //"JSObjectRef",
-    //"JSStringRef",
-    //"JSValueRef",
+    //"JS.*",
+    "JSC::.*",
+    "JSGlobalContextRef",
+    "JSContextGroupRef",
+    "JSObjectRef",
+    "JSStringRef",
+    "JSValueRef",
     //"bmalloc::.*",
     //"WTF::.*",
     //"Inspector::.*",
@@ -202,42 +205,42 @@ const WHITELIST_VARS: &'static [&'static str] = &[
 
 /// Functions we want to generate bindings to.
 const WHITELIST_FUNCTIONS: &'static [&'static str] = &[
-    "JS.*",
-    //"JSC::.*",
-    //"JSStringGetLength",
-    //"JSStringRelease",
-    //"JSStringCreateWithUTF8CString",
+    //"JS.*",
+    //"jsc_.*:",
+    "JSStringGetLength",
+    "JSStringRelease",
+    "JSStringCreateWithUTF8CString",
 
-    //"JSContextGroupRelease",
-    //"JSContextGroupCreate",
+    "JSContextGroupRelease",
+    "JSContextGroupCreate",
 
-    //"JSGlobalContextRelease",
-    //"JSGlobalContextCreateInGroup",
-    //"JSGlobalContextCreateRelease",
+    "JSGlobalContextRelease",
+    "JSGlobalContextCreateInGroup",
+    "JSGlobalContextCreateRelease",
 
-    //"JSValueMakeBoolean",
-    //"JSValueMakeNumber",
-    //"JSValueMakeString",
-    //"JSValueMakeNull",
-    //"JSValueMakeUndefined",
+    "JSValueMakeBoolean",
+    "JSValueMakeNumber",
+    "JSValueMakeString",
+    "JSValueMakeNull",
+    "JSValueMakeUndefined",
 
-    //"JSValueIsBoolean",
-    //"JSValueIsNull",
-    //"JSValueIsUndefined",
-    //"JSValueIsNumber",
-    //"JSValueIsString",
+    "JSValueIsBoolean",
+    "JSValueIsNull",
+    "JSValueIsUndefined",
+    "JSValueIsNumber",
+    "JSValueIsString",
 
-    //"JSValueIsObject",
-    //"JSValueIsArray",
-    //"JSValueIsDate",
+    "JSValueIsObject",
+    "JSValueIsArray",
+    "JSValueIsDate",
 
-    //"JSValueToNumber",
-    //"JSValueToBoolean",
+    "JSValueToNumber",
+    "JSValueToBoolean",
 
-    //"JSObjectMakeArray",
-    //"JSObjectIsConstructor",
-    //"JSEvaluateScript",
-    //"JSCheckScriptSyntax",
+    "JSObjectMakeArray",
+    "JSObjectIsConstructor",
+    "JSEvaluateScript",
+    "JSCheckScriptSyntax",
 ];
 
 /// Types for which we should NEVER generate bindings, even if it is used within

@@ -1,7 +1,7 @@
 #/bin/bash
 #
 # Libraries required for this build:
-#    make cmake clang python3-dev ruby libglib-dev
+#    make cmake musl-dev glib-dev clang python3-dev ruby libglib-dev
 #
 
 ###############################################################################
@@ -10,8 +10,8 @@
 #                                                                             #
 ###############################################################################
 # Explicitly use LLVM toolchain
-CC=$(which clang)
-CXX=$(which clang++)
+CC=/usr/bin/x86_64-alpine-linux-musl-gcc
+CXX=/usr/bin/x86_64-alpine-linux-musl-g++
 
 MAKE=$(which make)
 CMAKE=$(which cmake)
@@ -23,7 +23,7 @@ N_JOBS=$(nproc)
 WEBKIT_SRC=$(if [ -n "${JSC_SRC}" ];then echo ${JSC_SRC}; else echo "${CARGO_MANIFEST_DIR}/WebKit";fi)
 BUILD_DIR=${OUT_DIR}/build
 
-# Additional libraries needed for x86_64-unknown-linux-gnu build
+# Additional libraries needed for x86_64-unknown-linux-musl/gnu build
 LINK_GLIB=$(pkg-config --cflags --libs glib-2.0)
 
 
@@ -56,13 +56,13 @@ CMAKE_ARGS="${CMAKE_ARGS} -DDEVELOPER_MODE=NO"
 CMAKE_ARGS="${CMAKE_ARGS} -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 
 
-
 ###############################################################################
 #                                                                             #
 #                       Generate Makefile and Build                           #
 #                                                                             #
 ###############################################################################
 mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
-#${WEBKIT_SRC}/build
+gem update && gem update --system
+
 ${CMAKE} -j${N_JOBS} ${CXX_FLAGS} ${CMAKE_ARGS} -S${WEBKIT_SRC} -B${BUILD_DIR}
 ${MAKE} -j${N_JOBS} ${LINK_GLIB}
