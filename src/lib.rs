@@ -1,5 +1,5 @@
 #![crate_name = "jscjs_sys"]
-#![crate_type = "rlib"]
+//#![crate_type = "rlib"]
 
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case, improper_ctypes)]
 
@@ -24,4 +24,7 @@
 //! [3]: https://developer.apple.com/documentation/javascriptcore
 //!
 
-include!(concat!(env!("OUT_DIR"), "/build/bindings.rs"));
+pub mod runtime;
+
+pub use self::runtime::api;
+pub use self::runtime::{VM, Context, String, Value, Object};
