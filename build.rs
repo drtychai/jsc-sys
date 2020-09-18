@@ -53,7 +53,7 @@ fn build_jscapi(build_dir: &Path) {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()
-        .unwrap();
+        .expect("Failed to run `make`");
     assert!(result.success());
 
     println!(

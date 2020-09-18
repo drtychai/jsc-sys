@@ -18,4 +18,3 @@ let vm = sys::VM::new();
         assert!(result.is_number(&context));
     }
 }
-
