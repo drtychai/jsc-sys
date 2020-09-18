@@ -1,7 +1,7 @@
 #![allow(unused_variables)]
 
-extern crate url;
 extern crate jscjs_sys;
+extern crate url;
 use jscjs_sys::api;
 
 #[test]

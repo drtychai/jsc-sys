@@ -23,15 +23,10 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header(build_dir.join("DerivedSources/ForwardingHeaders/JavaScriptCore/JavaScript.h").to_str().expect("UTF-8"))
-        .clang_args(&[
-            "-L", build_dir.join("lib").to_str().expect("UTF-8"),
-            "-l", ":libJavaScriptCore.a",
-        ])
+        .clang_args(&["-L", build_dir.join("lib").to_str().expect("UTF-8"), "-l", ":libJavaScriptCore.a"])
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()
         .expect("Unable to generate bindings");
 
-    bindings
-        .write_to_file(build_dir.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
+    bindings.write_to_file(build_dir.join("bindings.rs")).expect("Couldn't write bindings!");
 }
