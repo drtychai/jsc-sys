@@ -1,0 +1,58 @@
+# Libc toolchain
+CC  := $(shell which gcc)
+CXX := $(shell which g++)
+
+N_JOBS ?= $(shell nproc)
+
+BUILD_DIR  ?= ${OUT_DIR}/build
+WEBKIT_SRC := ${JSC_SRC}
+ifeq (${JSC_SRC},)
+WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
+endif
+
+
+###############################################################################
+#                                                                             #
+#                             Cmake Build Args                                #
+#                                                                             #
+###############################################################################
+CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable -ftree-slp-vectorize"
+
+# Debug build flavor of JavaScriptCore
+CMAKE_ARGS := "-DPORT=JSCOnly"
+CMAKE_ARGS += " -DCMAKE_BUILD_TYPE=Debug"
+CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
+CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
+CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+
+# Build statically using libglib
+CMAKE_ARGS += " -DCMAKE_SKIP_RPATH=ON"
+CMAKE_ARGS += " -DENABLE_SAMPLING_PROFILER=OFF"
+CMAKE_ARGS += " -DUSE_LD_GOLD=OFF"
+CMAKE_ARGS += " -DUSE_SYSTEMD=OFF" # -DENABLE_SAMPLING_PROFILER=OFF"
+
+CMAKE_ARGS += " -DENABLE_STATIC_JSC=ON"
+CMAKE_ARGS += " -DENABLE_FTL_JIT=ON"
+CMAKE_ARGS += " -DENABLE_TOOLS=OFF"
+
+# Omit superfluous test code and build proper (i.e., non-shallow) archives
+CMAKE_ARGS += " -DUSE_CAPSTONE=OFF"
+CMAKE_ARGS += " -DUSE_SYSTEM_MALLOC=OFF"
+CMAKE_ARGS += " -DUSE_THIN_ARCHIVES=OFF"
+CMAKE_ARGS += " -DDEVELOPER_MODE=OFF"
+CMAKE_ARGS += " -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
+
+###############################################################################
+
+
+build:
+	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
+	@
+	@cmake $(shell echo "$(CXX_FLAGS) -GNinja $(CMAKE_ARGS)") -S${WEBKIT_SRC} -B${BUILD_DIR}
+	@ninja -C ${BUILD_DIR}
+
+clean:
+	@make -C ${WEBKIT_SRC} clean
+
+
+.PHONY: build

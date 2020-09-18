@@ -1,8 +1,5 @@
 #![crate_name = "jscjs_sys"]
-#![crate_type = "rlib"]
-
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case, improper_ctypes)]
-
 //!
 //! This crate contains Rust bindings to the Webkit JavaScript engine, [JavaScriptCore][1],
 //! developed by Apple.
