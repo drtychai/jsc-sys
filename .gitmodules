@@ -1,5 +1,5 @@
 [submodule "WebKit"]
 	path = WebKit
-	url = git://git.webkit.org/WebKit.git
+	url = https://github.com/Webkit/WebKit
 	branch = master
 	shallow = true
