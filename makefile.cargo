@@ -1,14 +1,24 @@
+# Build types for x86_64
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    CMAKE_ARGS := "-DPORT=GTK"
+endif
+ifeq ($(UNAME_S),Darwin)
+    CMAKE_ARGS := "-DPORT=JSCOnly"
+endif
+
 # Libc toolchain
 CC  := $(shell which clang)
 CXX := $(shell which clang++)
 
 N_JOBS     ?= $(shell nproc)
 BUILD_DIR  ?= ${OUT_DIR}/build
-WEBKIT_SRC := ${JSC_SRC}
 
-# If JSC source is somewhere else: export JSC_SRC=/abs/path/to/WebKit
+# To set the sourc path, use the ${JSC_SRC} environment variable
+# Source path defaul to ${CARGO_MANIFEST_DIR}/WebKit
+WEBKIT_SRC := ${JSC_SRC}
 ifeq (${JSC_SRC},)
-WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
+    WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
 endif
 
 ###############################################################################
@@ -19,14 +29,16 @@ endif
 CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable -ftree-slp-vectorize"
 
 # Debug build flavor of JavaScriptCore
-CMAKE_ARGS := " -DPORT=GTK"
 CMAKE_ARGS += " -DCMAKE_BUILD_TYPE=Debug"
 CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
 CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
 CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 
+
+ifeq ($(UNAME_S),Linux)
 CMAKE_ARGS += " -DJSC_GLIB_API_ENABLED=ON"
 CMAKE_ARGS += " -DUSE_GLIB=ON"
+endif
 
 #CMAKE_ARGS += " -DENABLE_SAMPLING_PROFILER=OFF"
 #CMAKE_ARGS += " -DUSE_LD_GOLD=OFF"

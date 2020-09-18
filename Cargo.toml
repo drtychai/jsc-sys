@@ -15,9 +15,9 @@ exclude = [
 ]
 
 [dependencies]
-url = "*"
+url = "2.1.1"
 libc = "0.2.76"
 
 [build-dependencies]
-pkg-config = "*"
+pkg-config = "0.3.18"
 bindgen = "0.55.1"

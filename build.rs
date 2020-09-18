@@ -22,29 +22,6 @@ fn main() {
     build_jscapi_bindings(&build_dir);
 }
 
-fn cc_flags() -> Vec<&'static str> {
-    let mut result = vec![
-        "-D",
-        "RUST_BINDGEN",
-        "-D",
-        "ENABLE_STATIC_JSC=ON",
-        "-D",
-        "JSC_GLIB_API_ENABLED=ON",
-    ];
-
-    result.extend(&[
-        "-Wall -Werror",
-        "-Wunused-but-set-variable",
-        "-Wno-unused-parameter",
-        "-Wno-invalid-offsetof",
-        "-Wno-unused-private-field",
-        "-ftree-slp-vectorize",
-        "-fno-sized-deallocation",
-    ]);
-
-    result
-}
-
 fn build_jscapi(build_dir: &Path) {
     let makefile = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("makefile.cargo");
 
@@ -56,12 +33,23 @@ fn build_jscapi(build_dir: &Path) {
         .expect("Failed to run `make`");
     assert!(result.success());
 
-    println!(
-        "cargo:rustc-link-search=native={}",
-        build_dir.join("lib").display()
-    );
-    println!("cargo:rustc-link-lib=javascriptcoregtk-4.0");
-    println!("cargo:rustc-link-lib=stdc++");
+
+    // Import newly build libJavaScriptCore[gtk-4.0]
+    println!("cargo:rustc-link-search=native={}",build_dir.join("lib").display());
+    {
+        #[cfg(target_os = "linux")]
+        {
+            println!("cargo:rustc-link-lib=javascriptcoregtk-4.0");
+            println!("cargo:rustc-link-lib=stdc++");
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            println!("cargo:rustc-link-search={}", build_dir.join("lib").display());
+            //println!("cargo:rustc-link-lib=static=libJavaScriptCore.a");
+            println!("cargo:rustc-link-lib=framework=JavaScriptCore");
+        }
+    }
 }
 
 /// Invoke bindgen on the JSAPI headers to produce raw FFI bindings for use from
@@ -89,36 +77,47 @@ fn build_jscapi_bindings(build_dir: &Path) {
         .with_codegen_config(config)
         .rustfmt_bindings(true);
 
-    builder = builder
-        .header(
-            cargo_manifest_dir
-                .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
-                .to_str()
-                .expect("UTF-8"),
-        )
-        .clang_args(&[
-            // JSC GTK headers --> Provides builder with incude for <jsc/[.*].h>
-            "-I",
-            build_dir
-                .join("DerivedSources/ForwardingHeaders/JavaScriptCore/glib")
-                .to_str()
-                .expect("UTF-8"),
-            "-I",
-            build_dir
-                .join("DerivedSources/JavaScriptCore/javascriptcoregtk")
-                .to_str()
-                .expect("UTF-8"),
-            "-include",
-            cargo_manifest_dir
-                .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
-                .to_str()
-                .expect("UTF-8"),
+
+    if cfg!(target_os = "linux") {
+        builder = builder
+            .header(cargo_manifest_dir
+                    .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                    .to_str()
+                    .expect("UTF-8"),
+            )
+            // JSC GTK headers
+            // Provides builder with incude for `#include <jsc/[.*].h>`
+            .clang_args(&[
+                "-I", build_dir
+                        .join("DerivedSources/ForwardingHeaders/JavaScriptCore/glib")
+                        .to_str()
+                        .expect("UTF-8"),
+                "-I", build_dir
+                        .join("DerivedSources/JavaScriptCore/javascriptcoregtk")
+                        .to_str()
+                        .expect("UTF-8"),
+                "-include", cargo_manifest_dir
+                        .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                        .to_str()
+                        .expect("UTF-8")
+            ])
             // GLib headers
-            "-I",
-            "/usr/include/glib-2.0",
-            "-I",
-            "/usr/lib/x86_64-linux-gnu/glib-2.0/include",
-        ]);
+            .clang_args(&[
+                "-I",
+                "/usr/include/glib-2.0",
+                "-I",
+                "/usr/lib/x86_64-linux-gnu/glib-2.0/include",
+            ]);
+
+    } else if cfg!(target_os = "macos") {
+        builder = builder
+            .header(build_dir
+                .join("DerivedSources/ForwardingHeaders/JavaScriptCore/JavaScript.h")
+                .to_str()
+                .expect("UTF-8"));
+    } else {
+        panic!("Support is only available for x86_64-apple-darwin and x86_64-unknown-linux-gnu");
+    }
 
     for js_type in WHITELIST_TYPES {
         builder = builder.whitelist_var(js_type);
@@ -147,6 +146,29 @@ fn build_jscapi_bindings(build_dir: &Path) {
     bindings
         .write_to_file(bindings_rs)
         .expect("An error occurred while writing JSC API bindings to file");
+}
+
+fn cc_flags() -> Vec<&'static str> {
+    let mut result = vec![
+        "-D",
+        "RUST_BINDGEN",
+        "-D",
+        "ENABLE_STATIC_JSC=ON",
+        "-D",
+        "JSC_GLIB_API_ENABLED=ON",
+    ];
+
+    result.extend(&[
+        "-Wall -Werror",
+        "-Wunused-but-set-variable",
+        "-Wno-unused-parameter",
+        "-Wno-invalid-offsetof",
+        "-Wno-unused-private-field",
+        "-ftree-slp-vectorize",
+        "-fno-sized-deallocation",
+    ]);
+
+    result
 }
 
 /// Types which we want to generate bindings for (and every other type they
