@@ -1,26 +1,19 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(warnings)]
-#![allow(deprecated)]
-
-extern crate url;
-use libc::size_t;
 use std::default::Default;
-use std::ffi::CString;
-use std::ptr;
+use std::{ffi, ptr};
 
-use crate::jsapi::*;
+pub mod api {
+    include!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/glue.rs"));
+}
 
 pub struct VM {
-    raw: JSContextGroupRef,
+    raw: api::JSContextGroupRef,
 }
 
 impl VM {
     pub fn new() -> VM {
         unsafe {
             VM {
-                raw: JSContextGroupCreate(),
+                raw: api::JSContextGroupCreate(),
             }
         }
     }
@@ -29,29 +22,29 @@ impl VM {
 impl Drop for VM {
     fn drop(&mut self) {
         unsafe {
-            JSContextGroupRelease(self.raw);
+            api::JSContextGroupRelease(self.raw);
         }
     }
 }
 
 // JSC managed String.
 pub struct String {
-    raw: JSStringRef,
+    raw: api::JSStringRef,
 }
 
 impl String {
     pub fn new(s: &str) -> String {
-        let cstr = CString::new(s.as_bytes()).unwrap();
+        let cstr = ffi::CString::new(s.as_bytes()).unwrap();
         unsafe {
             String {
-                raw: JSStringCreateWithUTF8CString(cstr.as_ptr()),
+                raw: api::JSStringCreateWithUTF8CString(cstr.as_ptr()),
             }
         }
     }
 
     pub fn length(&self) {
         unsafe {
-            JSStringGetLength(self.raw);
+            api::JSStringGetLength(self.raw);
         }
     }
 }
@@ -59,20 +52,20 @@ impl String {
 impl Drop for String {
     fn drop(&mut self) {
         unsafe {
-            JSStringRelease(self.raw);
+            api::JSStringRelease(self.raw);
         }
     }
 }
 
 pub struct Context {
-    raw: JSGlobalContextRef,
+    raw: api::JSGlobalContextRef,
 }
 
 impl Context {
     pub fn new(vm: &VM) -> Context {
         unsafe {
             Context {
-                raw: JSGlobalContextCreateInGroup(vm.raw, ptr::null_mut()),
+                raw: api::JSGlobalContextCreateInGroup(vm.raw, ptr::null_mut()),
             }
         }
     }
@@ -81,14 +74,14 @@ impl Context {
 impl Drop for Context {
     fn drop(&mut self) {
         unsafe {
-            JSGlobalContextRelease(self.raw);
+            api::JSGlobalContextRelease(self.raw);
         }
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 pub struct Value {
-    raw: JSValueRef,
+    raw: api::JSValueRef,
 }
 
 pub type JSResult<T> = Result<T, Value>;
@@ -98,7 +91,7 @@ impl Value {
     pub fn with_boolean(ctx: &Context, value: bool) -> Value {
         unsafe {
             Value {
-                raw: JSValueMakeBoolean(ctx.raw, value),
+                raw: api::JSValueMakeBoolean(ctx.raw, value),
             }
         }
     }
@@ -106,7 +99,7 @@ impl Value {
     pub fn with_number(ctx: &Context, value: f64) -> Value {
         unsafe {
             Value {
-                raw: JSValueMakeNumber(ctx.raw, value),
+                raw: api::JSValueMakeNumber(ctx.raw, value),
             }
         }
     }
@@ -114,7 +107,7 @@ impl Value {
     pub fn with_string(ctx: &Context, value: &str) -> Value {
         unsafe {
             Value {
-                raw: JSValueMakeString(ctx.raw, String::new(value).raw),
+                raw: api::JSValueMakeString(ctx.raw, String::new(value).raw),
             }
         }
     }
@@ -122,7 +115,7 @@ impl Value {
     pub fn null(ctx: &Context) -> Value {
         unsafe {
             Value {
-                raw: JSValueMakeNull(ctx.raw),
+                raw: api::JSValueMakeNull(ctx.raw),
             }
         }
     }
@@ -130,41 +123,41 @@ impl Value {
     pub fn undefined(ctx: &Context) -> Value {
         unsafe {
             Value {
-                raw: JSValueMakeUndefined(ctx.raw),
+                raw: api::JSValueMakeUndefined(ctx.raw),
             }
         }
     }
 
     pub fn is_boolean(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsBoolean(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsBoolean(ctx.raw, self.raw) }
     }
 
     pub fn is_null(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsNull(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsNull(ctx.raw, self.raw) }
     }
 
     pub fn is_undefined(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsUndefined(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsUndefined(ctx.raw, self.raw) }
     }
 
     pub fn is_number(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsNumber(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsNumber(ctx.raw, self.raw) }
     }
 
     pub fn is_string(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsString(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsString(ctx.raw, self.raw) }
     }
 
     pub fn is_object(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsObject(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsObject(ctx.raw, self.raw) }
     }
 
     pub fn is_array(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsArray(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsArray(ctx.raw, self.raw) }
     }
 
     pub fn is_date(&self, ctx: &Context) -> bool {
-        unsafe { JSValueIsDate(ctx.raw, self.raw) }
+        unsafe { api::JSValueIsDate(ctx.raw, self.raw) }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -173,8 +166,8 @@ impl Value {
 
     pub fn to_number(&self, ctx: &Context) -> JSResult<f64> {
         unsafe {
-            let mut exception: JSValueRef = ptr::null_mut();
-            let result = JSValueToNumber(ctx.raw, self.raw, &mut exception);
+            let mut exception: api::JSValueRef = ptr::null_mut();
+            let result = api::JSValueToNumber(ctx.raw, self.raw, &mut exception);
             if exception == ptr::null() {
                 Ok(result)
             } else {
@@ -184,7 +177,7 @@ impl Value {
     }
 
     pub fn to_boolean(&self, ctx: &Context) -> bool {
-        unsafe { JSValueToBoolean(ctx.raw, self.raw) }
+        unsafe { api::JSValueToBoolean(ctx.raw, self.raw) }
     }
 }
 
@@ -196,17 +189,17 @@ impl Default for Value {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Object {
-    raw: JSObjectRef,
+    raw: api::JSObjectRef,
 }
 
 impl Object {
     pub fn array(ctx: &Context, arguments: &[Value]) -> JSResult<Object> {
         unsafe {
-            let mut exception: JSValueRef = ptr::null_mut();
-            let result = JSObjectMakeArray(
+            let mut exception: api::JSValueRef = ptr::null_mut();
+            let result = api::JSObjectMakeArray(
                 ctx.raw,
-                arguments.len() as size_t,
-                arguments.as_ptr() as *mut JSValueRef,
+                arguments.len() as api::size_t,
+                arguments.as_ptr() as *mut api::JSValueRef,
                 &mut exception,
             );
             if exception == ptr::null_mut() {
@@ -218,15 +211,13 @@ impl Object {
     }
 
     pub fn is_constructor(&self, ctx: &Context) -> bool {
-        unsafe { JSObjectIsConstructor(ctx.raw, self.raw) }
+        unsafe { api::JSObjectIsConstructor(ctx.raw, self.raw) }
     }
 }
 
 impl Default for Object {
     fn default() -> Object {
-        Object {
-            raw: ptr::null_mut(),
-        }
+        Object { raw: ptr::null_mut() }
     }
 }
 
@@ -235,15 +226,8 @@ impl Context {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {
-            let mut exception: JSValueRef = ptr::null_mut();
-            let result = JSEvaluateScript(
-                self.raw,
-                string.raw,
-                receiver.raw,
-                source.raw,
-                starting_line_number,
-                &mut exception,
-            );
+            let mut exception: api::JSValueRef = ptr::null_mut();
+            let result = api::JSEvaluateScript(self.raw, string.raw, receiver.raw, source.raw, starting_line_number, &mut exception);
             if exception == ptr::null_mut() {
                 Ok(Value { raw: result })
             } else {
@@ -256,14 +240,8 @@ impl Context {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {
-            let mut exception: JSValueRef = ptr::null_mut();
-            let result = JSCheckScriptSyntax(
-                self.raw,
-                string.raw,
-                source.raw,
-                starting_line_number,
-                &mut exception,
-            );
+            let mut exception: api::JSValueRef = ptr::null_mut();
+            let result = api::JSCheckScriptSyntax(self.raw, string.raw, source.raw, starting_line_number, &mut exception);
             if exception == ptr::null_mut() {
                 Ok(result)
             } else {
