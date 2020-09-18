@@ -5,6 +5,7 @@
     non_snake_case,
     improper_ctypes,
     deprecated,
+    dead_code
 )]
 
 extern crate bindgen;
@@ -17,64 +18,50 @@ fn main() {
     let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
     println!("cargo:outdir={}", build_dir.display());
 
-    build_jsapi(&build_dir);
-    // if we need to redine/inline fn's to replace the mac-specific ones, it will be as this is done
-    //build_jsglue(&build_dir);
-    build_jsapi_bindings(&build_dir);
-
-    println!(
-        "cargo:rerun-if-env-changed={}",
-        build_dir.join("bindings.rs").to_str().expect("UTF-8")
-    );
+    build_jscapi(&build_dir);
+    build_jscapi_bindings(&build_dir);
 }
 
-fn cc_flags(build_dir: &Path) -> Vec<&'static str> {
-    let mut clang_lib_arg = String::from("-L").to_owned();
-    clang_lib_arg.push_str(build_dir.join("lib").to_str().expect("UTF-8"));
-
+fn cc_flags() -> Vec<&'static str> {
     let mut result = vec![
-        "-DRUST_BINDGEN",
-        "-DENABLE_STATIC_JSC=ON",
-        "-DCMAKE_C_COMPILER=/usr/local/bin/clang",
-        "-DCMAKE_CXX_COMPILER=/usr/local/bin/clang++",
-        "-DCMAKE_CXX_FLAGS='-O3 -lrt'",
+        "-D",
+        "RUST_BINDGEN",
+        "-D",
+        "ENABLE_STATIC_JSC=ON",
+        "-D",
+        "JSC_GLIB_API_ENABLED=ON",
     ];
 
     result.extend(&[
-        //"-j 6",
-        //"--max-load 8",
-        //"-Wsuggest-override",
-        "-Wall -Werror -Wunused-but-set-variable -ftree-slp-vectorize",
-        // GLib headers
-        //"-I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include",
-
-        "-fno-sized-deallocation",
+        "-Wall -Werror",
+        "-Wunused-but-set-variable",
         "-Wno-unused-parameter",
         "-Wno-invalid-offsetof",
         "-Wno-unused-private-field",
+        "-ftree-slp-vectorize",
+        "-fno-sized-deallocation",
     ]);
 
     result
 }
 
-fn build_jsapi(build_dir: &Path) {
+fn build_jscapi(build_dir: &Path) {
     let makefile = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("makefile.cargo");
-    println!("makefile: {}", makefile.display());
 
-    // Initial build as JSCOnly;static;debug
     let result = Command::new("make")
         .args(&["-R", "-f", makefile.to_str().expect("UTF-8")])
-        .current_dir(build_dir)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()
         .unwrap();
     assert!(result.success());
 
-    println!("cargo:rustc-link-=static=search={}", build_dir.join("lib").display());
-    println!("cargo:rustc-link-lib=static=bmalloc");
-    println!("cargo:rustc-link-lib=static=WTF");
-    println!("cargo:rustc-link-lib=static=JavaScriptCore");
+    println!(
+        "cargo:rustc-link-search=native={}",
+        build_dir.join("lib").display()
+    );
+    println!("cargo:rustc-link-lib=javascriptcoregtk-4.0");
+    println!("cargo:rustc-link-lib=stdc++");
 }
 
 /// Invoke bindgen on the JSAPI headers to produce raw FFI bindings for use from
@@ -82,16 +69,7 @@ fn build_jsapi(build_dir: &Path) {
 ///
 /// To add or remove which functions, types, and variables get bindings
 /// generated, see the `const` configuration variables below.
-fn build_jsapi_bindings(build_dir: &Path) {
-    let jsc_include_dir = build_dir
-        .join("DerivedSources")
-        .join("ForwardingHeaders")
-        .join("JavaScriptCore")
-        .join("JavaScriptCore.h");
-
-    let wrapper_h = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("wrapper.h");
-    //let wrapper_h = jsc_include_dir.join("JavaScriptCore").join("JavaScriptCore.h");
-
+fn build_jscapi_bindings(build_dir: &Path) {
     let mut config = bindgen::CodegenConfig::all();
     config &= !bindgen::CodegenConfig::CONSTRUCTORS;
     config &= !bindgen::CodegenConfig::DESTRUCTORS;
@@ -100,10 +78,10 @@ fn build_jsapi_bindings(build_dir: &Path) {
     config &= !bindgen::CodegenConfig::TYPES;
     config &= !bindgen::CodegenConfig::FUNCTIONS;
 
+    let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let mut builder = bindgen::Builder::default()
         .use_core()
         .rust_target(bindgen::RustTarget::Stable_1_40)
-        .header(wrapper_h.to_str().expect("UTF-8"))
         // Translate every enum with the "rustified enum" strategy
         .rustified_enum(".*")
         .size_t_is_usize(true)
@@ -111,15 +89,39 @@ fn build_jsapi_bindings(build_dir: &Path) {
         .with_codegen_config(config)
         .rustfmt_bindings(true);
 
-    // Specify our build architecture and target headers to generate bindings for
     builder = builder
-        .clang_arg("-I")
-        .clang_arg(jsc_include_dir.to_str().expect("UTF-8"))
-        .clang_arg("-include")
-        .clang_arg(wrapper_h.to_str().expect("UTF-8"));
+        .header(
+            cargo_manifest_dir
+                .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                .to_str()
+                .expect("UTF-8"),
+        )
+        .clang_args(&[
+            // JSC GTK headers --> Provides builder with incude for <jsc/[.*].h>
+            "-I",
+            build_dir
+                .join("DerivedSources/ForwardingHeaders/JavaScriptCore/glib")
+                .to_str()
+                .expect("UTF-8"),
+            "-I",
+            build_dir
+                .join("DerivedSources/JavaScriptCore/javascriptcoregtk")
+                .to_str()
+                .expect("UTF-8"),
+            "-include",
+            cargo_manifest_dir
+                .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                .to_str()
+                .expect("UTF-8"),
+            // GLib headers
+            "-I",
+            "/usr/include/glib-2.0",
+            "-I",
+            "/usr/lib/x86_64-linux-gnu/glib-2.0/include",
+        ]);
 
     for js_type in WHITELIST_TYPES {
-        builder = builder.whitelist_type(js_type);
+        builder = builder.whitelist_var(js_type);
     }
 
     for js_var in WHITELIST_VARS {
@@ -130,6 +132,11 @@ fn build_jsapi_bindings(build_dir: &Path) {
         builder = builder.whitelist_function(js_func);
     }
 
+    println!(
+        "Generting bindings {:?} {}.",
+        builder.command_line_flags(),
+        bindgen::clang_version().full
+    );
     let bindings = builder
         // If any header files in our target source are modified, re-run
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
@@ -145,16 +152,20 @@ fn build_jsapi_bindings(build_dir: &Path) {
 /// Types which we want to generate bindings for (and every other type they
 /// transitively use).
 const WHITELIST_TYPES: &'static [&'static str] = &[
-    //"JS.*",
-    "JSC::.*",
+    // GLib types
+    //"JSC::.*",
+    "JSCValue",
+    "JSCContext",
     "JSGlobalContextRef",
-    "JSContextGroupRef",
-    "JSObjectRef",
-    "JSStringRef",
     "JSValueRef",
-    //"bmalloc::.*",
-    //"WTF::.*",
-    //"Inspector::.*",
+    "JSStringRef",
+    // Darwin types
+    //"JS.*",
+    //"JSGlobalContextRef",
+    //"JSContextGroupRef",
+    //"JSObjectRef",
+    //"JSStringRef",
+    //"JSValueRef",
 ];
 
 /// Global variables we want to generate bindings to.
@@ -166,40 +177,35 @@ const WHITELIST_VARS: &'static [&'static str] = &[
 const WHITELIST_FUNCTIONS: &'static [&'static str] = &[
     //"JS.*",
     //"jsc_.*:",
-    "JSStringGetLength",
-    "JSStringRelease",
-    "JSStringCreateWithUTF8CString",
-
-    "JSContextGroupRelease",
-    "JSContextGroupCreate",
-
-    "JSGlobalContextRelease",
-    "JSGlobalContextCreateInGroup",
-    "JSGlobalContextCreateRelease",
-
-    "JSValueMakeBoolean",
-    "JSValueMakeNumber",
-    "JSValueMakeString",
-    "JSValueMakeNull",
-    "JSValueMakeUndefined",
-
     "JSValueIsBoolean",
     "JSValueIsNull",
     "JSValueIsUndefined",
     "JSValueIsNumber",
     "JSValueIsString",
-
     "JSValueIsObject",
     "JSValueIsArray",
     "JSValueIsDate",
-
     "JSValueToNumber",
     "JSValueToBoolean",
+    "JSValueToStringCopy",
+    "JSStringRelease",
+    "JSStringGetMaximumUTF8CStringSize",
+    "JSStringGetUTF8CString",
+    //"JSStringGetLength",
+    //"JSStringRelease",
+    //"JSStringCreateWithUTF8CString",
 
-    "JSObjectMakeArray",
-    "JSObjectIsConstructor",
-    "JSEvaluateScript",
-    "JSCheckScriptSyntax",
+    //"JSContextGroupRelease",
+    //"JSContextGroupCreate",
+
+    //"JSGlobalContextRelease",
+    //"JSGlobalContextCreateInGroup",
+    //"JSGlobalContextCreateRelease",
+
+    //"JSObjectMakeArray",
+    //"JSObjectIsConstructor",
+    //"JSEvaluateScript",
+    //"JSCheckScriptSyntax",
 ];
 
 /// Types for which we should NEVER generate bindings, even if it is used within
