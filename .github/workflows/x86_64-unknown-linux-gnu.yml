@@ -14,7 +14,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-macos:
+  build-gnu:
     runs-on: ubuntu-latest
 
     steps:

@@ -2,15 +2,16 @@
 extern crate jscjs_sys;
 extern crate url;
 
-use jscjs_sys::jsapi as api;
 use jscjs_sys::{Context, Object, String, Value, VM};
+use jscjs_sys::runtime;
 use url::Url;
 
 #[test]
+#[ignore]
 fn simple() {
     unsafe {
-        let vm = api::JSContextGroupCreate();
-        api::JSContextGroupRelease(vm);
+        let vm = runtime::JSContextGroupCreate();
+        runtime::JSContextGroupRelease(vm);
     }
 }
 

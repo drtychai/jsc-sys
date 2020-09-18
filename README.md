@@ -11,6 +11,9 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 [docs.rs]: https://docs.rs/jscjs-js
 [docs.rs-badge]: https://docs.rs/jscjs-js/badge.svg
 
+[gnu-build]: https://github.com/drtychai/jsc-sys/actions?query=workflow:gnu
+[gnu-badge]: https://github.com/drtychai/jsc-sys/workflows/gnu/badge.svg
+
 [musl-build]: https://github.com/drtychai/jsc-sys/actions?query=workflow:musl
 [musl-badge]: https://github.com/drtychai/jsc-sys/workflows/musl/badge.svg
 
@@ -20,6 +23,13 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 [license]: https://img.shields.io/crates/l/jscjs-sys.svg
 
 ## Building
+Prerequisites libraries:
+- LLVM toolchain (`llvm-dev` or `clang-dev`)
+- CMake and Make utilities
+- WebKit dependencies (GNU/Linux specific):
+  - `libicu-dev`
+  - `libgcrypt20-dev`
+
 
 ```sh
 #
@@ -54,12 +64,11 @@ jscjs-sys = "0.0.2"
 All necessary definitions are provided to easily interoperate with the JSC API on all `x86_64` *nix
 architectures supported by Rust. This crate explicity exports:
 
-
-|      JavaScriptCore.h   |      jscjs_sys         |
+|   libJavaScriptCore     |      jscjs_sys         |
 |:-----------------------:|:----------------------:|
-| `JSContextGroupRef`     |  `jscjs_sys::VM`       |
-| `JSGlobalContectRef`    |  `jscjs_sys::Context`  |
-| `JSString`              |  `jscjs_sys::Sting`    |
+|  `JSContextGroupRef`    |  `jscjs_sys::VM`       |
+|  `JSGlobalContextRef`   |  `jscjs_sys::Context`  |
+|  `JSString`             |  `jscjs_sys::Sting`    |
 |  `JSValueRef`           |  `jscjs_sys::Value`    |
 |  `JSObjectref`          |  `jscjs_sys::Object`   |
 
