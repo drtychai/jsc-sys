@@ -3,7 +3,7 @@ name: musl
 on:
   push:
     branches:
-        - dev
+        - musl
   pull_request:
     branches: [ dev ]
 
