@@ -3,10 +3,9 @@ name: musl
 on:
   push:
     branches:
-        - master
         - dev
   pull_request:
-    branches: [ master ]
+    branches: [ dev ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -22,27 +21,7 @@ jobs:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
-    - name: setup-docker
-      uses: docker-practice/actions-setup-docker@master
+    - name: build
+      uses:  stevenleadbeater/rust-musl-builder@master
       with:
-        docker_version: 19.03
-        docker_channel: stable
-
-    - name: pull-musl-image
-      run: docker pull registry.gitlab.com/rust_musl_docker/image:stable-latest
-
-    - name: build-static-musl-lib
-      run: |
-        docker run --rm --detach \
-          --name rust_musl_docker \
-          -v /home/runner/work/jsc-sys:/home/rust \
-          -v /home/runner/.cargo:/home/rust/.cargo \
-          registry.gitlab.com/rust_musl_docker/image:stable-latest \
-          bash -c "\
-            apt update && \
-            apt install -y ninja-build && \
-            cd /home/rust/jsc-sys && \
-            cargo build -vv --target=x86_64-unknown-linux-musl"
-
-    - name: cleanup
-      run: docker kill rust_musl_docker
+          args: /bin/bash -c "cargo build -vv --target=x86_64-unknown-linux-musl"
