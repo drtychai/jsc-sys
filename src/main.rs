@@ -1,7 +1,7 @@
 extern crate jscjs_sys as sys;
 
 pub fn main() {
-let vm = sys::VM::new();
+    let vm = sys::VM::new();
     let context = sys::Context::new(&vm);
     {
         let source = url::Url::parse("https://webkit.org").unwrap();

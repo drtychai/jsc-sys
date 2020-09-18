@@ -1,10 +1,10 @@
 #![allow(unused_variables)]
-extern crate url;
 extern crate jscjs_sys;
+extern crate url;
 
-use url::Url;
-use jscjs_sys::{Context, Object, String, Value, VM};
 use jscjs_sys::jsapi as api;
+use jscjs_sys::{Context, Object, String, Value, VM};
+use url::Url;
 
 #[test]
 fn simple() {

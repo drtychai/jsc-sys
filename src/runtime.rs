@@ -1,5 +1,5 @@
-use std::{ptr, ffi};
 use std::default::Default;
+use std::{ffi, ptr};
 
 pub mod api {
     include!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/glue.rs"));
@@ -217,32 +217,17 @@ impl Object {
 
 impl Default for Object {
     fn default() -> Object {
-        Object {
-            raw: ptr::null_mut(),
-        }
+        Object { raw: ptr::null_mut() }
     }
 }
 
 impl Context {
-    pub fn evaluate_script(
-        &self,
-        script: &str,
-        receiver: &Object,
-        url: url::Url,
-        starting_line_number: i32,
-    ) -> JSResult<Value> {
+    pub fn evaluate_script(&self, script: &str, receiver: &Object, url: url::Url, starting_line_number: i32) -> JSResult<Value> {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {
             let mut exception: api::JSValueRef = ptr::null_mut();
-            let result = api::JSEvaluateScript(
-                self.raw,
-                string.raw,
-                receiver.raw,
-                source.raw,
-                starting_line_number,
-                &mut exception,
-            );
+            let result = api::JSEvaluateScript(self.raw, string.raw, receiver.raw, source.raw, starting_line_number, &mut exception);
             if exception == ptr::null_mut() {
                 Ok(Value { raw: result })
             } else {
@@ -251,23 +236,12 @@ impl Context {
         }
     }
 
-    pub fn check_syntax(
-        &self,
-        script: &str,
-        url: url::Url,
-        starting_line_number: i32,
-    ) -> JSResult<bool> {
+    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<bool> {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {
             let mut exception: api::JSValueRef = ptr::null_mut();
-            let result = api::JSCheckScriptSyntax(
-                self.raw,
-                string.raw,
-                source.raw,
-                starting_line_number,
-                &mut exception,
-            );
+            let result = api::JSCheckScriptSyntax(self.raw, string.raw, source.raw, starting_line_number, &mut exception);
             if exception == ptr::null_mut() {
                 Ok(result)
             } else {

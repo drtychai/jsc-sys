@@ -1,12 +1,5 @@
 #![no_builtins]
-#![allow(
-    non_upper_case_globals,
-    non_camel_case_types,
-    non_snake_case,
-    improper_ctypes,
-    deprecated,
-    dead_code
-)]
+#![allow(non_upper_case_globals, non_camel_case_types, non_snake_case, improper_ctypes, deprecated, dead_code)]
 
 extern crate bindgen;
 
@@ -33,9 +26,8 @@ fn build_jscapi(build_dir: &Path) {
         .expect("Failed to run `make`");
     assert!(result.success());
 
-
     // Import newly build libJavaScriptCore[gtk-4.0]
-    println!("cargo:rustc-link-search=native={}",build_dir.join("lib").display());
+    println!("cargo:rustc-link-search=native={}", build_dir.join("lib").display());
     {
         #[cfg(target_os = "linux")]
         {
@@ -77,10 +69,10 @@ fn build_jscapi_bindings(build_dir: &Path) {
         .with_codegen_config(config)
         .rustfmt_bindings(true);
 
-
     if cfg!(target_os = "linux") {
         builder = builder
-            .header(cargo_manifest_dir
+            .header(
+                cargo_manifest_dir
                     .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
                     .to_str()
                     .expect("UTF-8"),
@@ -88,33 +80,28 @@ fn build_jscapi_bindings(build_dir: &Path) {
             // JSC GTK headers
             // Provides builder with incude for `#include <jsc/[.*].h>`
             .clang_args(&[
-                "-I", build_dir
-                        .join("DerivedSources/ForwardingHeaders/JavaScriptCore/glib")
-                        .to_str()
-                        .expect("UTF-8"),
-                "-I", build_dir
-                        .join("DerivedSources/JavaScriptCore/javascriptcoregtk")
-                        .to_str()
-                        .expect("UTF-8"),
-                "-include", cargo_manifest_dir
-                        .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
-                        .to_str()
-                        .expect("UTF-8")
+                "-I",
+                build_dir
+                    .join("DerivedSources/ForwardingHeaders/JavaScriptCore/glib")
+                    .to_str()
+                    .expect("UTF-8"),
+                "-I",
+                build_dir.join("DerivedSources/JavaScriptCore/javascriptcoregtk").to_str().expect("UTF-8"),
+                "-include",
+                cargo_manifest_dir
+                    .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                    .to_str()
+                    .expect("UTF-8"),
             ])
             // GLib headers
-            .clang_args(&[
-                "-I",
-                "/usr/include/glib-2.0",
-                "-I",
-                "/usr/lib/x86_64-linux-gnu/glib-2.0/include",
-            ]);
-
+            .clang_args(&["-I", "/usr/include/glib-2.0", "-I", "/usr/lib/x86_64-linux-gnu/glib-2.0/include"]);
     } else if cfg!(target_os = "macos") {
-        builder = builder
-            .header(build_dir
+        builder = builder.header(
+            build_dir
                 .join("DerivedSources/ForwardingHeaders/JavaScriptCore/JavaScript.h")
                 .to_str()
-                .expect("UTF-8"));
+                .expect("UTF-8"),
+        );
     } else {
         panic!("Support is only available for x86_64-apple-darwin and x86_64-unknown-linux-gnu");
     }
@@ -131,11 +118,7 @@ fn build_jscapi_bindings(build_dir: &Path) {
         builder = builder.whitelist_function(js_func);
     }
 
-    println!(
-        "Generting bindings {:?} {}.",
-        builder.command_line_flags(),
-        bindgen::clang_version().full
-    );
+    println!("Generting bindings {:?} {}.", builder.command_line_flags(), bindgen::clang_version().full);
     let bindings = builder
         // If any header files in our target source are modified, re-run
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
@@ -149,14 +132,7 @@ fn build_jscapi_bindings(build_dir: &Path) {
 }
 
 fn cc_flags() -> Vec<&'static str> {
-    let mut result = vec![
-        "-D",
-        "RUST_BINDGEN",
-        "-D",
-        "ENABLE_STATIC_JSC=ON",
-        "-D",
-        "JSC_GLIB_API_ENABLED=ON",
-    ];
+    let mut result = vec!["-D", "RUST_BINDGEN", "-D", "ENABLE_STATIC_JSC=ON", "-D", "JSC_GLIB_API_ENABLED=ON"];
 
     result.extend(&[
         "-Wall -Werror",
