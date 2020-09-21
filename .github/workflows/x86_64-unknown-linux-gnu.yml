@@ -25,7 +25,7 @@ jobs:
         submodules: 'true'
 
     - name: install deps
-      run: apt install -y libgcrypt20-dev
+      run: sudo apt install -y libgcrypt20-dev
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
