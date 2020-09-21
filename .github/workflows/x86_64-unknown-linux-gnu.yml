@@ -37,7 +37,8 @@ jobs:
             libwebp-dev \
             libxslt-dev \
             libghc-zlib-dev \
-            libjpeg-dev
+            libjpeg-dev \
+            libtasn1-dev
         
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
