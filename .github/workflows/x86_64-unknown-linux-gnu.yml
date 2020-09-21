@@ -24,11 +24,6 @@ jobs:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
-    - name: apt-fix-deps
-      run: |
-        sudo apt update --fix-missing
-        sudo apt upgrade -y
-
     - name: install-gtk-deps
       run: |
         sudo apt update
@@ -46,7 +41,7 @@ jobs:
           libupower-glib-dev libwebp-dev libwoff-dev libxcomposite-dev libxt-dev \
           libxtst-dev libxslt1-dev libwayland-dev ninja-build patch ruby xfonts-utils \
           apache2 curl cups-daemon dbus-x11 gdb fonts-liberation hunspell hunspell-en-us \
-          hunspell-en-gb libapache2-mod-bw libapache2-mod-php php-json libcgi-pm-perl \
+          hunspell-en-gb php-json libcgi-pm-perl \
           libgpg-error-dev psmisc pulseaudio-utils python-gi python-psutil python-yaml \
           ruby ruby-json ruby-highline weston xvfb bison flex git gobject-introspection \
           gsettings-desktop-schemas-dev gyp icon-naming-utils libcroco3-dev libcups2-dev \
@@ -77,17 +72,17 @@ jobs:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
-    - name: apt-fix-deps
-      run: |
-        sudo apt update --fix-missing
-        sudo apt remove --purge libapache2-mod-php
-        sudo apt clean
-
     - name: install deps
       run: |
         sudo apt update
         sudo $( find ~ -path '*/Tools/gtk/install-dependencies' )
         sudo $( find ~ -path '*/Tools/Scripts/update-webkitgtk-libs' ) 
+
+    - name: apt-fix-deps
+      run: |
+        sudo apt update --fix-missing
+        sudo apt install -f
+        sudo apt clean
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
