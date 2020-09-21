@@ -26,8 +26,8 @@ jobs:
 
     - name: install deps
       run: |
-        sudo apt update
-        echo y | sudo $( find ~ -path '*/gtk/install-dependencies' )
+        sudo apt update --fix-missing && \
+            echo y | sudo $( find ~ -path '*/gtk/install-dependencies' )
         sudo apt install -y libgcrypt20-dev
 
     - name: build
