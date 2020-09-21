@@ -24,10 +24,15 @@ jobs:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
-    - name: install deps
+    - name: apt-fix-deps
       run: |
-        sudo apt update --fix-missing
-        sudo apt install -y -f libapache2-mod-php
+        sudo apt remove -f -y libapache2-mod-php
+        sudo apt update
+        sudo apt clean
+
+    - name: install-gtk-deps
+      run: |
+        sudo apt update
         sudo apt install -y \
           autoconf automake autopoint autotools-dev \
           bubblewrap cmake gawk geoclue-2.0 gnome-common gperf gtk-doc-tools \
@@ -73,9 +78,15 @@ jobs:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
+    - name: apt-fix-deps
+      run: |
+        sudo apt update --fix-missing
+        sudo apt install -f -y libapache2-mod-php7.4
+        sudo apt clean
+
     - name: install deps
       run: |
-        sudo apt update --fix-missing && sudo apt install -y -f libapache2-mod-php
+        sudo apt update
         sudo $( find ~ -path '*/Tools/gtk/install-dependencies' )
         sudo $( find ~ -path '*/Tools/Scripts/update-webkitgtk-libs' ) 
 
