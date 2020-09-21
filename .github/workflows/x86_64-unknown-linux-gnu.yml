@@ -27,8 +27,7 @@ jobs:
     - name: apt-fix-deps
       run: |
         sudo apt update --fix-missing
-        sudo apt build-dep libapache2-mod-php
-        sudo apt clean
+        sudo apt upgrade -y
 
     - name: install-gtk-deps
       run: |
@@ -80,10 +79,9 @@ jobs:
 
     - name: apt-fix-deps
       run: |
+        sudo apt update --fix-missing
         sudo apt remove --purge libapache2-mod-php
         sudo apt clean
-        sudo apt update --fix-missing
-        sudo apt install libapache2-mod-php --install-dependencies
 
     - name: install deps
       run: |
