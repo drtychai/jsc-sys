@@ -27,7 +27,7 @@ jobs:
     - name: install deps
       run: |
         sudo apt update --fix-missing
-        sudo apt install -y -f
+        sudo apt install -y -f libapache2-mod-php
         sudo apt install -y \
           autoconf automake autopoint autotools-dev \
           bubblewrap cmake gawk geoclue-2.0 gnome-common gperf gtk-doc-tools \
@@ -75,6 +75,7 @@ jobs:
 
     - name: install deps
       run: |
+        sudo apt update --fix-missing && sudo apt install -y -f libapache2-mod-php
         sudo $( find ~ -path '*/Tools/gtk/install-dependencies' )
         sudo $( find ~ -path '*/Tools/Scripts/update-webkitgtk-libs' ) 
 
