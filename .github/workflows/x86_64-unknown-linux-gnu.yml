@@ -25,7 +25,10 @@ jobs:
         submodules: 'true'
 
     - name: install deps
-      run: sudo $( find ~ -path '*/gtk/install-dependencies' )
+      run: |
+        sudo apt update
+        sudo $( find ~ -path '*/gtk/install-dependencies' )
+        sudo apt update --fix-missing
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
