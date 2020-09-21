@@ -27,7 +27,7 @@ jobs:
     - name: install deps
       run: |
         sudo apt update
-        sudo $( find ~ -path '*/gtk/install-dependencies' )
+        echo y | sudo $( find ~ -path '*/gtk/install-dependencies' )
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
