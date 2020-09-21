@@ -1,9 +1,9 @@
-# jsc-sys
+# jscjs-sys
 A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 
-[![crates.io-badge]][crates.io] [![docs.rs-badge]][docs.rs] [![license]][lic]
-
+[![crates.io-badge]][crates.io] [![docs.rs-badge]][docs.rs]
 [![gnu-badge]][gnu-build] [![musl-badge]][musl-build] [![darwin-badge]][darwin-build]
+[![license]][lic]
 
 
 [crates.io]: https://crates.io/crates/jscjs-sys
@@ -27,11 +27,10 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 ## Building
 Prerequisites libraries:
 - LLVM toolchain (`llvm-dev` or `clang-dev`)
-- CMake and Make utilities
-- WebKit dependencies (GNU/Linux specific):
-  - `libicu-dev`
-  - `libgcrypt20-dev`
+- `cmake` and `make` utilities
+- [WebKit dependencies][gtk-deps] (GNU/Linux specific):
 
+[gtk-deps]: https://github.com/WebKit/webkit/blob/master/Tools/gtk/install-dependencies
 
 ```sh
 #
@@ -53,7 +52,6 @@ Prerequisites libraries:
 #
 ➜ export JSC_SRC=/abs/path/to/webkit && cargo package [-vv] [--target <TRIPLE>]
 ```
-
 
 ## Usage
 Add the following to your `Cargo.toml`:
