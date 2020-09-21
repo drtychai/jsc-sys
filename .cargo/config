@@ -1,5 +1,5 @@
 [target.x86_64-unknown-linux-gnu]
-rustc-flags = [
+rustflags = [
     "-L", "/usr/lib/x86_64-linux-gnu"
 ]
 
