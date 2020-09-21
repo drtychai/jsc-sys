@@ -28,7 +28,7 @@ jobs:
       run: |
         sudo apt update
         sudo $( find ~ -path '*/gtk/install-dependencies' )
-        sudo apt update --fix-missing
+        sudo apt install -y --fix-missing bubblewrap xdg-dbus-proxy
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
