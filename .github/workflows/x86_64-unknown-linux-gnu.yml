@@ -28,9 +28,8 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y \
-          autoconf automake autopoint autotools-dev cmake make gperf \
+          autoconf automake autopoint autotools-dev cmake make gperf gobject-introspection \
           bubblewrap python3-dev python3-setuptools xdg-dbus-proxy python3-secretstorage \
-          gobject-introspection \
           libasound2-dev \
           libatk1.0-dev \
           libedit-dev \
@@ -69,8 +68,11 @@ jobs:
           libxcomposite-dev \
           libxt-dev \
           libxtst-dev libxslt1-dev \
-          libwayland-dev 
+          libwayland-dev
         sudo apt clean
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
+
+    - name: tests
+      run: cargo test -vv

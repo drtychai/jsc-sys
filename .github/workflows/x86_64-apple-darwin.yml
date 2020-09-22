@@ -26,3 +26,6 @@ jobs:
 
     - name: build
       run: cargo build -vv --target=x86_64-apple-darwin
+
+    - name: tests
+      run: cargo test -vv
