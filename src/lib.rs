@@ -24,5 +24,5 @@
 
 pub mod runtime;
 
-//pub use self::runtime::api;
 pub use self::runtime::{Context, Object, String, Value, VM};
+use self::runtime::api;

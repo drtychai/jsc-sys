@@ -9,10 +9,16 @@ use std::process::{Command, Stdio};
 
 fn main() {
     let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
+    let source_dir = match env::var_os("SRC_DIR") {
+        Some(p) => PathBuf::from(p),
+        None => PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("WebKit")
+    };
+
     println!("cargo:outdir={}", build_dir.display());
+    println!("cargo:srcdir={}", source_dir.display());
 
     build_jscapi(&build_dir);
-    build_jscapi_bindings(&build_dir);
+    build_jscapi_bindings(&source_dir, &build_dir);
 }
 
 fn build_jscapi(build_dir: &Path) {
@@ -38,7 +44,6 @@ fn build_jscapi(build_dir: &Path) {
         #[cfg(target_os = "macos")]
         {
             println!("cargo:rustc-link-search={}", build_dir.join("lib").display());
-            //println!("cargo:rustc-link-lib=static=libJavaScriptCore.a");
             println!("cargo:rustc-link-lib=framework=JavaScriptCore");
         }
     }
@@ -49,7 +54,7 @@ fn build_jscapi(build_dir: &Path) {
 ///
 /// To add or remove which functions, types, and variables get bindings
 /// generated, see the `const` configuration variables below.
-fn build_jscapi_bindings(build_dir: &Path) {
+fn build_jscapi_bindings(source_dir: &Path, build_dir: &Path) {
     let mut config = bindgen::CodegenConfig::all();
     config &= !bindgen::CodegenConfig::CONSTRUCTORS;
     config &= !bindgen::CodegenConfig::DESTRUCTORS;
@@ -58,7 +63,6 @@ fn build_jscapi_bindings(build_dir: &Path) {
     config &= !bindgen::CodegenConfig::TYPES;
     config &= !bindgen::CodegenConfig::FUNCTIONS;
 
-    let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let mut builder = bindgen::Builder::default()
         .use_core()
         .rust_target(bindgen::RustTarget::Stable_1_40)
@@ -72,13 +76,13 @@ fn build_jscapi_bindings(build_dir: &Path) {
     if cfg!(target_os = "linux") {
         builder = builder
             .header(
-                cargo_manifest_dir
-                    .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                source_dir
+                    .join("Source/JavaScriptCore/API/glib/jsc.h")
                     .to_str()
                     .expect("UTF-8"),
             )
             // JSC GTK headers
-            // Provides builder with incude for `#include <jsc/[.*].h>`
+            // `#include <jsc/[.*].h>`
             .clang_args(&[
                 "-I",
                 build_dir
@@ -88,8 +92,8 @@ fn build_jscapi_bindings(build_dir: &Path) {
                 "-I",
                 build_dir.join("DerivedSources/JavaScriptCore/javascriptcoregtk").to_str().expect("UTF-8"),
                 "-include",
-                cargo_manifest_dir
-                    .join("WebKit/Source/JavaScriptCore/API/glib/jsc.h")
+                source_dir
+                    .join("Source/JavaScriptCore/API/glib/jsc.h")
                     .to_str()
                     .expect("UTF-8"),
             ])
@@ -150,20 +154,13 @@ fn cc_flags() -> Vec<&'static str> {
 /// Types which we want to generate bindings for (and every other type they
 /// transitively use).
 const WHITELIST_TYPES: &'static [&'static str] = &[
-    // GLib types
+    //"JS.*",
     //"JSC::.*",
     "JSCValue",
     "JSCContext",
     "JSGlobalContextRef",
     "JSValueRef",
     "JSStringRef",
-    // Darwin types
-    //"JS.*",
-    //"JSGlobalContextRef",
-    //"JSContextGroupRef",
-    //"JSObjectRef",
-    //"JSStringRef",
-    //"JSValueRef",
 ];
 
 /// Global variables we want to generate bindings to.
@@ -190,8 +187,6 @@ const WHITELIST_FUNCTIONS: &'static [&'static str] = &[
     "JSStringGetMaximumUTF8CStringSize",
     "JSStringGetUTF8CString",
     //"JSStringGetLength",
-    //"JSStringRelease",
-    //"JSStringCreateWithUTF8CString",
 
     //"JSContextGroupRelease",
     //"JSContextGroupCreate",
@@ -211,14 +206,4 @@ const WHITELIST_FUNCTIONS: &'static [&'static str] = &[
 const _BLACKLIST_TYPES: &'static [&'static str] = &[
     // We'll be using libc::FILE.
     "FILE",
-    // We provide our own definition because we need to express trait bounds in
-    // the definition of the struct to make our Drop implementation correct.
-    "JS::Heap",
-    // We provide our own definition because SM's use of templates
-    // is more than bindgen can cope with.
-    "JS::Rooted",
-    // We don't need them and bindgen doesn't like them.
-    "JS::HandleVector",
-    "JS::MutableHandleVector",
-    "JS::Rooted.*Vector",
 ];

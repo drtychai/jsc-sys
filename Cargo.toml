@@ -2,7 +2,7 @@
 name = "jscjs_sys"
 description = "System crate providing bindings to the Webkit JavsScript engine, JavaScriptCore"
 repository = "https://github.com/drtychai/jsc-sys"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["bynx <drtychai@protonmail.com>"]
 links = "glib-2.0"
 build = "build.rs"

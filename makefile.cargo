@@ -11,15 +11,8 @@ endif
 CC  := $(shell which clang)
 CXX := $(shell which clang++)
 
-N_JOBS     ?= $(shell nproc)
 BUILD_DIR  ?= ${OUT_DIR}/build
-
-# To set the sourc path, use the ${JSC_SRC} environment variable
-# Source path defaul to ${CARGO_MANIFEST_DIR}/WebKit
-WEBKIT_SRC := ${JSC_SRC}
-ifeq (${JSC_SRC},)
-    WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
-endif
+SOURCE_DIR ?= $(shell if [ ! -d "${SRC_DIR}" ];then echo "${CARGO_MANIFEST_DIR}/WebKit";else echo "${SRC_DIR}";fi)
 
 ###############################################################################
 #                                                                             #
@@ -72,11 +65,11 @@ FLAGS=$(shell echo "$(CXX_FLAGS)  $(CMAKE_ARGS)")
 build:
 	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	@
-	@cmake ${FLAGS} -S${WEBKIT_SRC} -B${BUILD_DIR}
-	@make -j${N_JOBS} -C ${BUILD_DIR} jsc
+	@cmake ${FLAGS} -S${SOURCE_DIR} -B${BUILD_DIR}
+	@make -C ${BUILD_DIR} jsc
 
 clean:
-	@make -C ${WEBKIT_SRC} clean
+	@make -C ${BUILD_DIR} clean
 
 
 .PHONY: build
