@@ -27,7 +27,6 @@ pub mod runtime;
 use self::runtime::api;
 pub use self::runtime::{Context, Object, String, Value, VM};
 
-
 #[test]
 fn simple() {
     unsafe {
