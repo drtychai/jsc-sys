@@ -1,3 +1,7 @@
+mod bindings {
+    include!(concat!(env!("OUT_DIR"), "/build/bindings.rs"));
+}
+
 /// Opaque type bound to a chunk of virtual memory. Owns at least one (JavaScript) execution enironment.
 /// Struct of `JSContext` objects.
 #[repr(C)]

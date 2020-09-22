@@ -11,7 +11,7 @@ fn main() {
     let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
     let source_dir = match env::var_os("SRC_DIR") {
         Some(p) => PathBuf::from(p),
-        None => PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("WebKit")
+        None => PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("WebKit"),
     };
 
     println!("cargo:outdir={}", build_dir.display());
@@ -75,12 +75,7 @@ fn build_jscapi_bindings(source_dir: &Path, build_dir: &Path) {
 
     if cfg!(target_os = "linux") {
         builder = builder
-            .header(
-                source_dir
-                    .join("Source/JavaScriptCore/API/glib/jsc.h")
-                    .to_str()
-                    .expect("UTF-8"),
-            )
+            .header(source_dir.join("Source/JavaScriptCore/API/glib/jsc.h").to_str().expect("UTF-8"))
             // JSC GTK headers
             // `#include <jsc/[.*].h>`
             .clang_args(&[
@@ -92,10 +87,7 @@ fn build_jscapi_bindings(source_dir: &Path, build_dir: &Path) {
                 "-I",
                 build_dir.join("DerivedSources/JavaScriptCore/javascriptcoregtk").to_str().expect("UTF-8"),
                 "-include",
-                source_dir
-                    .join("Source/JavaScriptCore/API/glib/jsc.h")
-                    .to_str()
-                    .expect("UTF-8"),
+                source_dir.join("Source/JavaScriptCore/API/glib/jsc.h").to_str().expect("UTF-8"),
             ])
             // GLib headers
             .clang_args(&["-I", "/usr/include/glib-2.0", "-I", "/usr/lib/x86_64-linux-gnu/glib-2.0/include"]);
