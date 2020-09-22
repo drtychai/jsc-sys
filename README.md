@@ -24,35 +24,6 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 [license]: https://img.shields.io/crates/l/jscjs-sys.svg
 [lic]: /LICENSE
 
-## Building
-Prerequisites libraries:
-- LLVM toolchain (`llvm-dev` or `clang-dev`)
-- `cmake` and `make` utilities
-- [WebKit dependencies][gtk-deps] (GNU/Linux specific):
-
-[gtk-deps]: https://github.com/WebKit/webkit/blob/master/Tools/gtk/install-dependencies
-
-```sh
-#
-#  Clone crate and WebKit source (included as a submodule)
-#
-➜ git clone --recursive https://github.com/drtychai/jsc-sys
-
-                 [ ... ]
-
-#
-#  No special caveats to builds
-#
-➜ cargo build [-vv] [--target <TRIPLE>]
-
-                 [ ... ]
-
-#
-#  Packaging requires the `JSC_SRC` environment variable
-#
-➜ export JSC_SRC=/abs/path/to/webkit && cargo package [-vv] [--target <TRIPLE>]
-```
-
 ## Usage
 Add the following to your `Cargo.toml`:
 
@@ -88,3 +59,42 @@ Provided below are some practical examples of what functionalities this crate al
 [1]: https://trac.webkit.org/wiki/JavaScriptCore
 [2]: https://github.com/WebKit/webkit/tree/master/Source/JavaScriptCore/API
 [3]: https://developer.apple.com/documentation/javascriptcore
+
+## Development
+### Prerequisites
+- LLVM toolchain (`llvm-dev` or `clang-dev`)
+- `cmake` and `make` utilities
+- [WebKit dependencies][gtk-deps] (GNU/Linux specific)
+  - `cd /path/to/WebKit && Tools/gtk/install-dependencies`
+
+[gtk-deps]: https://github.com/WebKit/webkit/blob/master/Tools/gtk/install-dependencies
+
+### Get Source
+Clone crate and WebKit source (included as a submodule):
+
+```sh
+➜ git clone https://github.com/drtychai/jsc-sys
+➜ cd jsc-sys && \
+  git submodule update --remote --init --recursive
+```
+
+### Building
+No special caveats to builds:
+
+```sh
+➜ cargo build [-vv] [--target <TRIPLE>]
+
+                 [ ... ]
+```
+
+### Packaging
+Packaging requires a runtime clone of WebKit unless the `SRC_DIR` environment variable is set:
+
+```sh
+➜ export SRC_DIR=/abs/path/to/webkit && \
+  cargo package [-vv] [--target <TRIPLE>]
+
+                 [ ... ]
+```
+
+
