@@ -29,7 +29,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-jscjs-sys = "0.0.2"
+jscjs_sys = "0.0.3"
 ```
 
 All necessary definitions are provided to easily interoperate with the JSC API on all `x86_64` *nix
