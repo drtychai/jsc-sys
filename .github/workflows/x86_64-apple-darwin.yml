@@ -6,7 +6,9 @@ on:
         - master
         - dev
   pull_request:
-    branches: [ master ]
+    branches:
+        - master
+        - dev
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,14 +18,14 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: pull-all-the-source
+    - name: pull-all-source
       uses: actions/checkout@v2
       with:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
-    - name: install-ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
-
     - name: build
       run: cargo build -vv --target=x86_64-apple-darwin
+
+    - name: tests
+      run: cargo test -vv

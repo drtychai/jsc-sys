@@ -1,21 +1,75 @@
-cmake_args ?= -DPORT="JSCOnly"
-cmake_args += -GNinja
-cmake_args += -DCMAKE_MAKE_PROGRAM=ninja
-cmake_args += -DENABLE_STATIC_JSC=ON
-cmake_args += -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF
-cmake_args += -DDEVELOPER_MODE=OFF
-cmake_args += -DENABLE_EXPERIMENTAL_FEATURES=OFF
-cmake_args += -DUSE_THIN_ARCHIVES=OFF
-build_dest ?= ${OUT_DIR}/build
+# Build types for x86_64
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    CMAKE_ARGS := "-DPORT=GTK"
+endif
+ifeq ($(UNAME_S),Darwin)
+    CMAKE_ARGS := "-DPORT=JSCOnly"
+endif
 
-# Webkit source tree implicitly set to ${JSC_SRC}
-# Falls back to CARGO_MANIFEST_DIR/WebKit if unset
-webkit_src ?= $(shell if [ -n "$${JSC_SRC}" ];then echo $${JSC_SRC}; else echo "${CARGO_MANIFEST_DIR}/WebKit";fi)
-build: $(build_dest)
-	@cmake $(cmake_args) -S $(webkit_src) -B $(build_dest)
-	@ninja -C $(build_dest)
+# Libc toolchain
+CC  := $(shell which clang)
+CXX := $(shell which clang++)
 
-clean: $(webkit_src)
-	@make -C $(webkit_src) clean
+BUILD_DIR  ?= ${OUT_DIR}/build
+SOURCE_DIR ?= $(shell if [ ! -d "${SRC_DIR}" ];then echo "${CARGO_MANIFEST_DIR}/WebKit";else echo "${SRC_DIR}";fi)
 
-.PHONY: webkit_src build_dest cmake_args build clean
+###############################################################################
+#                                                                             #
+#                             Cmake Build Args                                #
+#                                                                             #
+###############################################################################
+CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable -ftree-slp-vectorize"
+
+# Debug build flavor of JavaScriptCore
+CMAKE_ARGS += " -DCMAKE_BUILD_TYPE=Debug"
+CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
+CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
+CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+
+
+ifeq ($(UNAME_S),Linux)
+CMAKE_ARGS += " -DJSC_GLIB_API_ENABLED=ON"
+CMAKE_ARGS += " -DUSE_GLIB=ON"
+endif
+
+#CMAKE_ARGS += " -DENABLE_SAMPLING_PROFILER=OFF"
+#CMAKE_ARGS += " -DUSE_LD_GOLD=OFF"
+
+CMAKE_ARGS += " -DENABLE_STATIC_JSC=ON"
+CMAKE_ARGS += " -DENABLE_FTL_JIT=ON"
+
+# Omit superfluous test code and build proper (i.e., non-shallow) archives
+CMAKE_ARGS += " -DENABLE_TOOLS=OFF"
+CMAKE_ARGS += " -DUSE_SYSTEMD=OFF"
+CMAKE_ARGS += " -DUSE_THIN_ARCHIVES=OFF"
+CMAKE_ARGS += " -DDEVELOPER_MODE=OFF"
+
+# Skip graphics and media libraries
+CMAKE_ARGS += " -DENABLE_DRAG_SUPPORT=OFF"
+CMAKE_ARGS += " -DENABLE_GRAPHICS_CONTEXT_GL=OFF"
+CMAKE_ARGS += " -DENABLE_MEDIA_SOURCE=OFF"
+CMAKE_ARGS += " -DENABLE_SPELLCHECK=OFF"
+CMAKE_ARGS += " -DENABLE_TOUCH_EVENTS=OFF"
+CMAKE_ARGS += " -DENABLE_VIDEO=OFF"
+CMAKE_ARGS += " -DENABLE_WAYLAND_TARGET=OFF"
+CMAKE_ARGS += " -DENABLE_X11_TARGET=OFF"
+CMAKE_ARGS += " -DUSE_OPENJPEG=OFF"
+CMAKE_ARGS += " -DUSE_WOFF2=OFF"
+CMAKE_ARGS += " -DUSE_WPE_RENDERER=OFF"
+
+###############################################################################
+
+FLAGS=$(shell echo "$(CXX_FLAGS)  $(CMAKE_ARGS)")
+
+build:
+	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
+	@
+	@cmake ${FLAGS} -S${SOURCE_DIR} -B${BUILD_DIR}
+	@make -C ${BUILD_DIR} jsc
+
+clean:
+	@make -C ${BUILD_DIR} clean
+
+
+.PHONY: build
