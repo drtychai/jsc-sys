@@ -1,6 +1,6 @@
 # Libc toolchain
-CC  := $(shell which gcc)
-CXX := $(shell which g++)
+CC  := $(shell which clang)
+CXX := $(shell which clang++)
 
 N_JOBS ?= $(shell nproc)
 
@@ -53,7 +53,7 @@ build: cov
 	@ninja -C ${BUILD_DIR}
 	@
 	@#Copy over JavaScriptCore.h from our source directory for FFI generation
-	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore/JavaScriptCore.h
+	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
 
 cov:
 	@cd ${WEBKIT_SRC} && git apply ../cov.patch 

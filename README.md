@@ -5,20 +5,6 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 [![musl-badge]][musl-build] [![darwin-badge]][darwin-build]
 ![license]
 
-[crates.io]: https://crates.io/crates/jscjs-sys
-[crates.io-badge]:  https://img.shields.io/crates/v/jscjs-sys.svg
-
-[docs.rs]: https://docs.rs/jscjs-js
-[docs.rs-badge]: https://docs.rs/jscjs-js/badge.svg
-
-[musl-build]: https://github.com/drtychai/jsc-sys/actions?query=workflow:musl
-[musl-badge]: https://github.com/drtychai/jsc-sys/workflows/musl/badge.svg
-
-[darwin-build]: https://github.com/drtychai/jsc-sys/actions?query=workflow:darwin
-[darwin-badge]: https://github.com/drtychai/jsc-sys/workflows/darwin/badge.svg
-
-[license]: https://img.shields.io/crates/l/jscjs-sys.svg
-
 ## Building
 
 ```sh
@@ -36,10 +22,7 @@ A `*-sys` crate of raw bindings to the [JavaScriptCore][1] low-level C API.
 
                  [ ... ]
 
-#
-#  Packaging requires the `JSC_SRC` environment variable
-#
-➜ export JSC_SRC=/abs/path/to/webkit && cargo package [-vv] [--target <TRIPLE>]
+➜ cargo package [-vv] [--target <TRIPLE>]
 ```
 
 
@@ -54,15 +37,13 @@ jscjs-sys = "0.0.2"
 All necessary definitions are provided to easily interoperate with the JSC API on all `x86_64` *nix
 architectures supported by Rust. This crate explicity exports:
 
-
-|      JavaScriptCore.h   |      jscjs_sys         |
+|    JavaScriptCore.h     |      jscjs_sys         |
 |:-----------------------:|:----------------------:|
-| `JSContextGroupRef`     |  `jscjs_sys::VM`       |
-| `JSGlobalContectRef`    |  `jscjs_sys::Context`  |
-| `JSString`              |  `jscjs_sys::Sting`    |
+|  `JSContextGroupRef`    |  `jscjs_sys::VM`       |
+|  `JSGlobalContectRef`   |  `jscjs_sys::Context`  |
+|  `JSString`             |  `jscjs_sys::Sting`    |
 |  `JSValueRef`           |  `jscjs_sys::Value`    |
 |  `JSObjectref`          |  `jscjs_sys::Object`   |
-
 
 These bindings are designed to be a fairly straightforward translation to the low-level C API,
 while taking advantage of Rust's memory safety. For more about the JavaScriptCore API, see the
@@ -79,3 +60,19 @@ Provided below are some practical examples of what functionalities this crate al
 [1]: https://trac.webkit.org/wiki/JavaScriptCore
 [2]: https://github.com/WebKit/webkit/tree/master/Source/JavaScriptCore/API
 [3]: https://developer.apple.com/documentation/javascriptcore
+
+[crates.io]: https://crates.io/crates/jscjs-sys
+[crates.io-badge]:  https://img.shields.io/crates/v/jscjs-sys.svg
+
+[docs.rs]: https://docs.rs/jscjs-js
+[docs.rs-badge]: https://docs.rs/jscjs-js/badge.svg
+
+[musl-build]: https://github.com/drtychai/jsc-sys/actions?query=workflow:musl
+[musl-badge]: https://github.com/drtychai/jsc-sys/workflows/musl/badge.svg
+
+[darwin-build]: https://github.com/drtychai/jsc-sys/actions?query=workflow:darwin
+[darwin-badge]: https://github.com/drtychai/jsc-sys/workflows/darwin/badge.svg
+
+[license]: https://img.shields.io/crates/l/jscjs-sys.svg
+
+
