@@ -45,6 +45,11 @@ CMAKE_ARGS += " -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 
 ###############################################################################
 
+all: build
+
+cov:
+	@# If application of our patch fails, we already applied it or something worse happened
+	@$(shell [[ `git -C ${WEBKIT_SRC} apply ../cov.patch` ]] && git -C ${WEBKIT_SRC} apply -R ../cov.patch && git -C ${WEBKIT_SRC} apply ../cov.patch)
 
 build: cov
 	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
@@ -55,12 +60,8 @@ build: cov
 	@#Copy over JavaScriptCore.h from our source directory for FFI generation
 	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
 
-cov:
-	@cd ${WEBKIT_SRC} && git apply ../cov.patch 
-
-clean:
+clean: 
 	@make -C .${WEBKIT_SRC} clean && git -C ${WEBKIT_SRC} checkout .
 	@cargo clean
 
-
-.PHONY: build clean cov
+.PHONY: all cov build clean

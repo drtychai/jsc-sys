@@ -38,5 +38,6 @@ jobs:
 
     - name: tests
       run: |
+          git -C WebKit -R ../cov.patch
           export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \
             && cargo test -vv

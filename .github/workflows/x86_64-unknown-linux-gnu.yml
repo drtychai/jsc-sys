@@ -82,4 +82,6 @@ jobs:
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
 
     - name: tests
-      run: cargo test -vv
+      run: |
+          git -C WebKit -R ../cov.patch
+          cargo test -vv
