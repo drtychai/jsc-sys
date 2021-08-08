@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
         - master
-        - staging
+        - stagin
         - darwin
 
 env:
@@ -23,6 +23,7 @@ jobs:
       with:
         repository: '${{ github.repository }}'
         submodules: 'true'
+        fetch-depth: 1
 
     - name: install-deps
       run: brew install ninja
