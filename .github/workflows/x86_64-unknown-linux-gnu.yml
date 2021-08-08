@@ -72,7 +72,7 @@ jobs:
           libxtst-dev libxslt1-dev \
           libwayland-dev \
           llvm-12-dev \
-          ninja-build \
+          ninja-build
         sudo apt clean
 
     - name: patch-cov
