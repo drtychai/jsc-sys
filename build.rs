@@ -17,7 +17,7 @@ fn main() {
         .stderr(Stdio::inherit())
         .status() {
             // Make sure our compilation succeeded; else bail
-            Ok(r) => assert!(result.success()),
+            Ok(r) => assert!(r.success()),
             Err(e) => panic!("Make command failed, err: {:?}",e),
     }
 
