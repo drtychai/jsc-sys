@@ -1,11 +1,7 @@
-[build]
-#jobs = 16
-
 [target.x86_64-unknown-linux-gnu]
-rustc-flags = ["-L", "/usr/lib/x86_64-linux-gnu"]
+rustflags = [
+    "-L", "/usr/lib/x86_64-linux-gnu"
+]
 
 [target.x86_64-unknown-linux-musl]
 linker = "x86_64-unknown-linux-musl"
-
-
-# https://doc.rust-lang.org/cargo/reference/config.html

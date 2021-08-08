@@ -1,11 +1,9 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(warnings)]
-
-use crate::api;
 use std::default::Default;
 use std::{ffi, ptr};
+
+pub mod api {
+    include!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/glue.rs"));
+}
 
 pub struct VM {
     raw: api::JSContextGroupRef,
@@ -13,7 +11,11 @@ pub struct VM {
 
 impl VM {
     pub fn new() -> VM {
-        unsafe { VM { raw: api::JSContextGroupCreate() } }
+        unsafe {
+            VM {
+                raw: api::JSContextGroupCreate(),
+            }
+        }
     }
 }
 
@@ -111,7 +113,11 @@ impl Value {
     }
 
     pub fn null(ctx: &Context) -> Value {
-        unsafe { Value { raw: api::JSValueMakeNull(ctx.raw) } }
+        unsafe {
+            Value {
+                raw: api::JSValueMakeNull(ctx.raw),
+            }
+        }
     }
 
     pub fn undefined(ctx: &Context) -> Value {
@@ -190,7 +196,12 @@ impl Object {
     pub fn array(ctx: &Context, arguments: &[Value]) -> JSResult<Object> {
         unsafe {
             let mut exception: api::JSValueRef = ptr::null_mut();
-            let result = api::JSObjectMakeArray(ctx.raw, arguments.len() as api::size_t, arguments.as_ptr() as *mut api::JSValueRef, &mut exception);
+            let result = api::JSObjectMakeArray(
+                ctx.raw,
+                arguments.len() as api::size_t,
+                arguments.as_ptr() as *mut api::JSValueRef,
+                &mut exception,
+            );
             if exception == ptr::null_mut() {
                 Ok(Object { raw: result })
             } else {
