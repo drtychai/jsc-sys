@@ -71,6 +71,9 @@ jobs:
           libwayland-dev
         sudo apt clean
 
+    - name: patch-cov
+      run: git apply .github/workflows/sancov-remove.patch
+
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu
 

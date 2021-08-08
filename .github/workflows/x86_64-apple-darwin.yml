@@ -24,6 +24,9 @@ jobs:
         repository: '${{ github.repository }}'
         submodules: 'true'
 
+    - name: patch-cov
+      run: git apply .github/workflows/sancov-remove.patch
+
     - name: build
       run: cargo build -vv --target=x86_64-apple-darwin
 
