@@ -23,6 +23,8 @@ jobs:
       with:
         repository: '${{ github.repository }}'
         submodules: 'true'
+    - name: install-deps
+      run: brew install ninja
 
     - name: patch-cov
       run: git apply .github/workflows/sancov-remove.patch
