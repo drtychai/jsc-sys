@@ -24,6 +24,7 @@ jobs:
       with:
         repository: '${{ github.repository }}'
         submodules: 'true'
+        fetch-depth: 1
 
     - name: install-gtk-deps
       run: |
@@ -69,11 +70,10 @@ jobs:
           libxcomposite-dev \
           libxt-dev \
           libxtst-dev libxslt1-dev \
-          libwayland-dev
+          libwayland-dev \
+          llvm-12-dev \
+          ninja-build \
         sudo apt clean
-
-    - name: install-build-deps
-      run: sudo apt update && sudo apt install -y ninja-build
 
     - name: patch-cov
       run: git apply .github/workflows/sancov-remove.patch
