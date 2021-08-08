@@ -3,14 +3,9 @@
 #![allow(non_snake_case)]
 #![allow(warnings)]
 
-extern crate url;
+use crate::api;
 use std::default::Default;
-use std::ffi;
-use std::ptr;
-
-pub mod api {
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
+use std::{ffi, ptr};
 
 pub struct VM {
     raw: api::JSContextGroupRef,

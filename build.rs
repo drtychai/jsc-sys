@@ -22,7 +22,8 @@ fn main() {
     println!("cargo:rustc-link-lib=framework=JavaScriptCore");
 
     let bindings = bindgen::Builder::default()
-        .header(build_dir.join("DerivedSources/ForwardingHeaders/JavaScriptCore/JavaScript.h").to_str().expect("UTF-8"))
+        //.header(build_dir.join("DerivedSources/ForwardingHeaders/JavaScriptCore/JavaScript.h").to_str().expect("UTF-8"))
+        .header(build_dir.join("JavaScriptCore/PrivateHeaders/JavaScriptCore/JavaScriptCore.h").to_str().expect("UTF-8"))
         .clang_args(&["-L", build_dir.join("lib").to_str().expect("UTF-8"), "-l", ":libJavaScriptCore.a"])
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()

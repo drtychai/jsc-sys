@@ -16,7 +16,8 @@ endif
 #                             Cmake Build Args                                #
 #                                                                             #
 ###############################################################################
-CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable -ftree-slp-vectorize"
+CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable"
+CXX_FLAGS += " -fsanitize-coverage=trace-pc-guard"
 
 # Debug build flavor of JavaScriptCore
 CMAKE_ARGS := "-DPORT=JSCOnly"
@@ -45,14 +46,21 @@ CMAKE_ARGS += " -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 ###############################################################################
 
 
-build:
+build: cov
 	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	@
 	@cmake $(shell echo "$(CXX_FLAGS) -GNinja $(CMAKE_ARGS)") -S${WEBKIT_SRC} -B${BUILD_DIR}
 	@ninja -C ${BUILD_DIR}
+	@
+	@#Copy over JavaScriptCore.h from our source directory for FFI generation
+	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore/JavaScriptCore.h
+
+cov:
+	@cd ${WEBKIT_SRC} && git apply ../cov.patch 
 
 clean:
-	@make -C ${WEBKIT_SRC} clean
+	@make -C .${WEBKIT_SRC} clean && git -C ${WEBKIT_SRC} checkout .
+	@cargo clean
 
 
-.PHONY: build
+.PHONY: build clean cov
