@@ -1,23 +1,22 @@
 [package]
 name = "jscjs_sys"
-description = "System crate providing bindings to the Webkit JavsScript engine, JavaScriptCore"
+description = "Raw FFI bindings to Webkit's JavaScriptCore JavaScript engine."
 repository = "https://github.com/drtychai/jsc-sys"
 version = "0.0.3"
-authors = ["bynx <drtychai@protonmail.com>"]
-links = "glib-2.0"
-build = "build.rs"
+authors = [ "bynx <drtychai@protonmail.com>" ]
 license = "AGPL-3.0"
 edition = "2018"
+build = "build.rs"
 exclude = [
-    "*.lock",
     "**/WebKit",
-    "**/*.yml",
-]
+] 
 
-[dependencies]
-url = "2.1.1"
-libc = "0.2.76"
+[lib]
+name = "jscjs_sys"
+path = "src/lib.rs"
 
-[build-dependencies]
-pkg-config = "0.3.18"
-bindgen = "0.55.1"
+[dependencies.url]
+version = "2.2.2"
+
+[build-dependencies.bindgen]
+version = "0.59.1"
