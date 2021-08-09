@@ -35,9 +35,10 @@ jobs:
       run: |
           export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \
             && cargo build -vv --target=x86_64-apple-darwin
+          git -C WebKit -R ../cov.patch
 
     - name: tests
       run: |
-          git -C WebKit -R ../cov.patch
           export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \
             && cargo test -vv
+          git -C WebKit -R ../cov.patch
