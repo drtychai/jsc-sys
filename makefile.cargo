@@ -51,7 +51,7 @@ cov:
 	@# If application of our patch fails, we already applied it or something worse happened
 	@$(shell [[ `git -C ${WEBKIT_SRC} apply ../cov.patch` ]] && git -C ${WEBKIT_SRC} apply -R ../cov.patch && git -C ${WEBKIT_SRC} apply ../cov.patch)
 
-build: cov
+build: 
 	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	@
 	@cmake $(shell echo "$(CXX_FLAGS) -GNinja $(CMAKE_ARGS)") -S${WEBKIT_SRC} -B${BUILD_DIR}
