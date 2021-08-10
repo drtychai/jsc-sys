@@ -29,12 +29,12 @@ jobs:
       run: brew install llvm ninja
 
     - name: build
-      run: cargo build -vv --target=x86_64-apple-darwin
-      env:
-        PATH: "$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}"
+      run: |
+          export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \ 
+              && cargo build -vv --target=x86_64-apple-darwin
 
 
-    - name: tests
-      run: cargo test -vv --target=x86_64-apple-darwin
-      env:
-        PATH: "$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}"
+    - name: test
+      run: |
+          export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \ 
+              && cargo test -vv --target=x86_64-apple-darwin

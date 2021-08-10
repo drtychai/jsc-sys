@@ -15,10 +15,12 @@ endif
 
 ifeq (${OS},Darwin)
 JSC_H := ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
+OS_ARGS ?= " -DCMAKE_CXX_FLAGS='-fsanitize-coverage=trace-pc-guard'"
 endif
 
 ifeq (${OS},Linux)
 JSC_H := ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore/JavaSciptCore.h
+OS_ARGS ?= " -DCMAKE_CXX_FLAGS='-fsanitize-coverage=trace-pc-guard -lrt'"
 endif
 
 # Determine current patch state of our target engine
@@ -37,7 +39,7 @@ CMAKE_ARGS += " -DCMAKE_BUILD_TYPE=Debug"
 CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
 CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
 CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
-CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize-coverage=trace-pc-guard'"
+CMAKE_ARGS += ${OS_ARGS}
 
 # Build statically using libglib
 CMAKE_ARGS += " -DCMAKE_SKIP_RPATH=ON"
