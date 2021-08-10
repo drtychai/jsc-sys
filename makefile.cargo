@@ -5,11 +5,23 @@ CXX := $(shell which clang++)
 N_JOBS ?= $(shell nproc)
 
 BUILD_DIR  ?= ${OUT_DIR}/build
-WEBKIT_SRC := ${JSC_SRC}
+WEBKIT_SRC ?= ${JSC_SRC}
 ifeq (${JSC_SRC},)
 WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
+JSC_PATCH  := ${CARGO_MANIFEST_DIR}/cov.patch
 endif
 
+OS := $(shell uname)
+ifeq (${OS},Darwin)
+JSC_H := ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
+endif
+
+ifeq (${OS},Linux)
+JSC_H := ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore/JavaSciptCore.h
+endif
+
+# Determine current patch state of our target engine
+NEEDS_PATCHED ?= $(shell git -C ${WEBKIT_SRC} apply --check ${JSC_PATCH} 2>&1)
 
 ###############################################################################
 #                                                                             #
@@ -17,7 +29,7 @@ endif
 #                                                                             #
 ###############################################################################
 CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable"
-CXX_FLAGS += " -fsanitize-coverage=trace-pc-guard"
+#CXX_FLAGS += " -fsanitize-coverage=trace-pc-guard"
 
 # Debug build flavor of JavaScriptCore
 CMAKE_ARGS := "-DPORT=JSCOnly"
@@ -48,17 +60,18 @@ CMAKE_ARGS += " -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 all: build
 
 cov:
-	@# If application of our patch fails, we already applied it or something worse happened
-	@$(shell [[ `git -C ${WEBKIT_SRC} apply ../cov.patch` ]] && git -C ${WEBKIT_SRC} apply -R ../cov.patch && git -C ${WEBKIT_SRC} apply ../cov.patch)
+	@# Check if our working target source has already been patch; if so leave it alone
+	@if [ -e ${NEEDS_PATCHED} ];then git -C ${WEBKIT_SRC} apply ${JSC_PATCH}; fi
 
-build: 
+build: cov 
 	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	@
 	@cmake $(shell echo "$(CXX_FLAGS) -GNinja $(CMAKE_ARGS)") -S${WEBKIT_SRC} -B${BUILD_DIR}
 	@ninja -C ${BUILD_DIR}
 	@
 	@#Copy over JavaScriptCore.h from our source directory for FFI generation
-	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
+	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${JSC_H}
+	@
 
 clean: 
 	@make -C .${WEBKIT_SRC} clean && git -C ${WEBKIT_SRC} checkout .
