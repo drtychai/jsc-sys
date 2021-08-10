@@ -14,6 +14,7 @@ exclude = [
 [lib]
 name = "jscjs_sys"
 path = "src/lib.rs"
+crate-type = ["rlib", "staticlib"]
 
 [dependencies.url]
 version = "2.2.2"

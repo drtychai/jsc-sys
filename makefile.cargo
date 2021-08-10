@@ -1,4 +1,5 @@
 # Libc toolchain
+OS  ?= $(shell uname)
 CC  := $(shell which clang)
 CXX := $(shell which clang++)
 
@@ -6,12 +7,12 @@ N_JOBS ?= $(shell nproc)
 
 BUILD_DIR  ?= ${OUT_DIR}/build
 WEBKIT_SRC ?= ${JSC_SRC}
+
 ifeq (${JSC_SRC},)
 WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
 JSC_PATCH  := ${CARGO_MANIFEST_DIR}/cov.patch
 endif
 
-OS := $(shell uname)
 ifeq (${OS},Darwin)
 JSC_H := ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
 endif
@@ -29,7 +30,6 @@ NEEDS_PATCHED ?= $(shell git -C ${WEBKIT_SRC} apply --check ${JSC_PATCH} 2>&1)
 #                                                                             #
 ###############################################################################
 CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable"
-CXX_FLAGS += " -fsanitize-coverage=trace-pc-guard"
 
 # Debug build flavor of JavaScriptCore
 CMAKE_ARGS := "-DPORT=JSCOnly"
@@ -37,6 +37,7 @@ CMAKE_ARGS += " -DCMAKE_BUILD_TYPE=Debug"
 CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
 CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
 CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize-coverage=trace-pc-guard'"
 
 # Build statically using libglib
 CMAKE_ARGS += " -DCMAKE_SKIP_RPATH=ON"
@@ -59,10 +60,6 @@ CMAKE_ARGS += " -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 
 all: build
 
-cov:
-	@# Check if our working target source has already been patch; if so leave it alone
-	@if [ -e ${NEEDS_PATCHED} ];then git -C ${WEBKIT_SRC} apply ${JSC_PATCH}; fi
-
 build: cov 
 	@mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	@
@@ -71,7 +68,10 @@ build: cov
 	@
 	@#Copy over JavaScriptCore.h from our source directory for FFI generation
 	@cp ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h ${JSC_H}
-	@
+
+cov:
+	@# Check if our working target source has already been patch; if so leave it alone
+	@if [[ -e "${NEEDS_PATCHED}" ]];then git -C ${WEBKIT_SRC} apply ${JSC_PATCH};fi
 
 clean: 
 	@make -C .${WEBKIT_SRC} clean && git -C ${WEBKIT_SRC} checkout .

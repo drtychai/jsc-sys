@@ -2,12 +2,13 @@ diff --git a/Source/JavaScriptCore/jsc.cpp b/Source/JavaScriptCore/jsc.cpp
 index 04f2c970c220..495b9aa433d9 100644
 --- a/Source/JavaScriptCore/jsc.cpp
 +++ b/Source/JavaScriptCore/jsc.cpp
-@@ -163,6 +163,83 @@ struct MemoryFootprint {
+@@ -163,6 +163,84 @@ struct MemoryFootprint {
  #define PATH_MAX 4096
  #endif
  
 +// ************************************************************************** //
 +// SanitzerCoverage-based coverage collection code for libcoverage.
++#include <fcntl.h>
 +#define REPRL_CRFD 100
 +#define REPRL_CWFD 101
 +#define REPRL_DRFD 102

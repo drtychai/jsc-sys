@@ -28,11 +28,13 @@ jobs:
     - name: install-deps
       run: brew install llvm ninja
 
-    - name: patch-cov
-      run: git apply .github/workflows/sancov-remove.patch
-
     - name: build
       run: cargo build -vv --target=x86_64-apple-darwin
+      env:
+        PATH: "$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}"
+
 
     - name: tests
-      run: cargo test -vv
+      run: cargo test -vv --target=x86_64-apple-darwin
+      env:
+        PATH: "$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}"
