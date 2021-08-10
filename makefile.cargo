@@ -29,7 +29,7 @@ NEEDS_PATCHED ?= $(shell git -C ${WEBKIT_SRC} apply --check ${JSC_PATCH} 2>&1)
 #                                                                             #
 ###############################################################################
 CXX_FLAGS = "-Wall -Werror -Wunused-but-set-variable"
-#CXX_FLAGS += " -fsanitize-coverage=trace-pc-guard"
+CXX_FLAGS += " -fsanitize-coverage=trace-pc-guard"
 
 # Debug build flavor of JavaScriptCore
 CMAKE_ARGS := "-DPORT=JSCOnly"
