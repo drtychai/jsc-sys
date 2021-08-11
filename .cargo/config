@@ -1,13 +1,22 @@
-#[build]
-#jobs = 16
+# https://doc.rust-lang.org/cargo/reference/config.html
+[build.target.x86_64-apple-darwin]
+jobs = 16
+linker = "ld64.lld"
+rustflags = [
+    "-isysroot", "/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk",
+]
 
-[target.x86_64-unknown-linux-gnu]
+[build.target.x86_64-unknown-linux-gnu]
+jobs = 22
+linker = "ld.lld"
 rustflags = [
     "-L", "/usr/lib/x86_64-linux-gnu",
 ]
 
 [target.x86_64-unknown-linux-musl]
-linker = "x86_64-unknown-linux-musl"
+jobs = 22
+linker = "ld.lld"
+rustflags = [
+    "-L", "/usr/lib/x86_64-unknown-linux-musl",
+]
 
-
-# https://doc.rust-lang.org/cargo/reference/config.html

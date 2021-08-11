@@ -21,14 +21,29 @@ fn main() {
             Err(e) => panic!("Make command failed, err: {:?}",e),
     }
 
-    println!("cargo:rustc-link-search={}", build_dir.join("lib").display());
-    println!("cargo:rustc-link-lib=framework=JavaScriptCore");
+    //println!("cargo:rustc-link-search=native={}", build_dir.join("lib").display());
+    //println!("cargo:rustc-link-lib=static=JavaScriptCore");
+    //println!("cargo:rustc-link-lib=static=WTF");
+    //println!("cargo:rustc-link-lib=static=bmalloc");
+    ////println!("cargo:rustc-link-lib=framework=JavaScriptCore");
+
+  
+    let icu = PathBuf::from("/usr/local/Cellar/icu4c/69.1");
+    //println!("cargo:rustc-link-search=native={}", icu.join("lib").display());
+    //println!("cargo:rustc-link-lib=dylib=icuuc");
+    //println!("cargo:rustc-link-lib=dylib=icui18n");
 
     let bindings = bindgen::Builder::default()
-        .header(build_dir.join("JavaScriptCore/PrivateHeaders/JavaScriptCore.h").to_str().expect("UTF-8"))
+        .header(build_dir.join("JavaScriptCore/Headers/JavaScriptCore/JavaScript.h").to_str().expect("UTF-8"))
         .clang_args(&[
+            "-U__APPLE__",
+            "-I", build_dir.join("JavaScriptCore/Headers/JavaScriptCore").to_str().expect("UTF-8"),
             "-L", build_dir.join("lib").to_str().expect("UTF-8"),
-            "-l", ":libJavaScriptCore.a",
+            "-l", "JavaScriptCore",
+            "-I", icu.join("include").to_str().expect("UTF-8"),
+            "-L", icu.join("lib").to_str().expect("UTF-8"),
+            "-l", "icuuc",
+            "-l", "icui18n",
         ])
         .parse_callbacks(
             Box::new(bindgen::CargoCallbacks)
@@ -39,4 +54,9 @@ fn main() {
     bindings
         .write_to_file(build_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
-}
+
+    //println!("cargo:rustc-link-search=native={}", build_dir.join("lib").display());
+    //println!("cargo:rustc-link-lib=static=JavaScriptCore");
+    //println!("cargo:rustc-link-lib=static=WTF");
+    //println!("cargo:rustc-link-lib=static=bmalloc");
+} 
