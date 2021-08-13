@@ -40,13 +40,14 @@ CMAKE_ARGS += " -DCMAKE_BUILD_TYPE=Debug"
 CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
 CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
 CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
-CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize=address'"
+#CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize=address'"
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-stdlib=libc++'"
 
 # Build statically using libglib
 CMAKE_ARGS += " -DCMAKE_SKIP_RPATH=ON"
 CMAKE_ARGS += " -DENABLE_SAMPLING_PROFILER=OFF"
 CMAKE_ARGS += " -DUSE_LD_GOLD=OFF"
-CMAKE_ARGS += " -DUSE_SYSTEMD=OFF" # -DENABLE_SAMPLING_PROFILER=OFF"
+CMAKE_ARGS += " -DUSE_SYSTEMD=OFF"
 
 CMAKE_ARGS += " -DENABLE_STATIC_JSC=ON"
 CMAKE_ARGS += " -DENABLE_FTL_JIT=ON"
@@ -65,8 +66,10 @@ all: build
 
 build: cov configure
 	@ninja -C ${BUILD_DIR}
+	@#export LIBJSC_A=${BUILD_DIR}/lib/libJavaScriptCore.a
 	@#Copy over JavaScriptCore.h from our source directory for FFI generation
 	@cp ${JSC_H} ${SHIM_H}
+	@cp ${BUILD_DIR}/lib/*.a "${CARGO_MANIFEST_DIR}/lib"
 
 configure:
 	@mkdir -p ${BUILD_DIR}
@@ -77,7 +80,7 @@ cov:
 	@if [[ -e "${NEEDS_PATCHED}" ]];then git -C ${WEBKIT_SRC} apply ${JSC_PATCH};fi
 
 clean:
-	@make -C .${WEBKIT_SRC} clean && git -C ${WEBKIT_SRC} checkout .
-	@cargo clean
+	@make -C .${WEBKIT_SRC} clean && git -C .${WEBKIT_SRC} checkout .
+	@cargo clean -v
 
 .PHONY: all cov configure build clean

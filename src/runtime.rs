@@ -4,9 +4,10 @@
 #![allow(warnings)]
 
 use crate::api;
-use std::default::Default;
-use std::{ffi, ptr};
+use ::std::{ffi, ptr};
+use ::std::default::Default;
 
+/// JSC "VM"s are simply JSContextGroupRefs to some memblock
 pub struct VM {
     raw: api::JSContextGroupRef,
 }
@@ -25,7 +26,7 @@ impl Drop for VM {
     }
 }
 
-// JSC managed String.
+/// JSC managed String.
 pub struct String {
     raw: api::JSStringRef,
 }
@@ -190,7 +191,12 @@ impl Object {
     pub fn array(ctx: &Context, arguments: &[Value]) -> JSResult<Object> {
         unsafe {
             let mut exception: api::JSValueRef = ptr::null_mut();
-            let result = api::JSObjectMakeArray(ctx.raw, arguments.len() as api::size_t, arguments.as_ptr() as *mut api::JSValueRef, &mut exception);
+            let result = api::JSObjectMakeArray(
+                ctx.raw,
+                arguments.len() as usize,
+                arguments.as_ptr() as *mut api::JSValueRef,
+                &mut exception,
+            );
             if exception == ptr::null_mut() {
                 Ok(Object { raw: result })
             } else {
@@ -225,7 +231,7 @@ impl Context {
         }
     }
 
-    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<bool> {
+    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<()> {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {
