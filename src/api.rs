@@ -1,16 +1,10 @@
+#[allow(deref_nullptr, dead_code, non_camel_case_types)]
 mod prefix {
-    include!(
-        concat!(
-            env!("OUT_DIR"),
-            "/build/bindings.rs"
-        )
-    );
+    include!(concat!(env!("OUT_DIR"),"/build/bindings.rs"));
 }
 
 pub use self::prefix::root::*;
-//pub use self::prefix::*;
 
-//use JSContextGroupCreate;
 extern "C" {
     pub fn JSContextGroupCreate() -> JSContextGroupRef;
     pub fn JSContextGroupRelease(raw_ctx: JSContextGroupRef);

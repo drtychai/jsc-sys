@@ -1,13 +1,8 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(warnings)]
-
 use crate::api;
 use ::std::{ffi, ptr};
 use ::std::default::Default;
 
-/// JSC "VM"s are simply JSContextGroupRefs to some memblock
+/// Local Execution Context
 pub struct VM {
     raw: api::JSContextGroupRef,
 }
@@ -56,6 +51,7 @@ impl Drop for String {
     }
 }
 
+/// Global Execution Context
 pub struct Context {
     raw: api::JSGlobalContextRef,
 }
@@ -79,6 +75,7 @@ impl Drop for Context {
 }
 
 #[derive(Copy, Clone, Debug)]
+/// Wrapper around JSC types, e.g., Boolean, Number, etc.
 pub struct Value {
     raw: api::JSValueRef,
 }
@@ -183,6 +180,7 @@ impl Default for Value {
 }
 
 #[derive(Copy, Clone, Debug)]
+/// Top level structure for JavaScript. Equivalent to a HashMap.
 pub struct Object {
     raw: api::JSObjectRef,
 }
@@ -242,6 +240,21 @@ impl Context {
             } else {
                 Err(Value { raw: exception })
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::api;
+
+    // If this test fails, we have an issue with out bindings/FFIs
+    #[test]
+    #[ignore]
+    fn vm_context_ffi_smoke() {
+        unsafe {
+            let vm_raw = api::JSContextGroupCreate();
+            assert_eq!(api::JSContextGroupRelease(vm_raw), ());
         }
     }
 }

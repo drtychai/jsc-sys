@@ -1,17 +1,14 @@
 extern crate bindgen;
-//extern crate clang_sys;
-//extern crate rust_icu;
 use ::std::env;
 use ::std::path::PathBuf;
 use ::std::process::{Command, Stdio};
 
-//use self::rust_icu::*;
-
 fn main() {
     let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-    //let icu_lib_dir = PathBuf::from(env::var_os("ICU_LIB_PATH").unwrap());
     let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
-    println!("cargo:rerun-if-changed={}/WebKit/Source/JavaScriptCore/API/JavaScriptCore.h", cargo_manifest_dir.display());
+
+    // Condition upon rerun
+    println!("cargo:rerun-if-changed={}/WebKit/Source/JavaScriptCore/API/JavaScript.h", cargo_manifest_dir.display());
 
     // Initial build as JSCOnly;static;debug
     match Command::new("make")
@@ -27,82 +24,59 @@ fn main() {
             Err(e) => panic!("Make command failed, err: {:?}",e),
     }
 
-    // Linker args
+    // Link our freshly built static libraries
     {
-        // Our (just) built [debug] static libraries
-        println!("cargo:rustc-link-search=all={}/lib", build_dir.display());
-        //println!("cargo:rustc-link-lib=framework=JavaScriptCore");
-        //println!("cargo:rustc-link-lib=static=JavaScriptCore");
-        //println!("cargo:rustc-link-lib=static=WTF");
-        //println!("cargo:rustc-link-lib=static=bmalloc");
+        println!("cargo:rustc-link-search=all={}/lib", cargo_manifest_dir.display());
+        println!("cargo:rustc-link-lib=static=JavaScriptCore");
+        println!("cargo:rustc-link-lib=static=WTF");
+        println!("cargo:rustc-link-lib=static=bmalloc");
+    }
+        
+    // We still need to link to system dylib for darwin builds
+    {
+        // By default, these are linked to:
+        // path: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
         println!("cargo:rustc-link-lib=c++");
+        println!("cargo:rustc-link-lib=icucore");
         //println!("cargo:rustc-link-lib=-std=libc++");
-
-        //// System local libicu-uc and libicu-i18n
-        //// `brew install icu-uc icu-i18n`
-        //println!("cargo:rustc-link-search=all={}", icu_lib_dir.display());
-        ////println!("cargo:rustc-link-lib=static=icui18n");
-        ////println!("cargo:rustc-link-lib=static=icuuc");
-        ////println!("cargo:rustc-link-lib=static=icudata");
-        //println!("cargo:rustc-link-lib=dylib=icui18n");
-        //println!("cargo:rustc-link-lib=dylib=icuuc");
-        //println!("cargo:rustc-link-lib=dylib=icudata");
     } 
 
     let mut builder = bindgen::builder()
-        .rust_target(bindgen::RustTarget::Stable_1_40)
-        .header(
-            build_dir
-                .join("JavaScriptCore")
-                .join("PrivateHeaders")
-                .join("JavaScriptCore.h").to_str().expect("UTF-8")
+        .rust_target(bindgen::LATEST_STABLE_RUST)
+        .header(cargo_manifest_dir
+            .join("WebKit")
+            .join("Source")
+            .join("JavaScriptCore")
+            .join("API")
+            .join("JavaScript.h")
+            .to_str().expect("UTF-8")
         )
-        //.header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JavaScript.h").to_str().expect("UTF-8"))
-        .header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JSBase.h").to_str().expect("UTF-8"))
-        .header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JSContextRef.h").to_str().expect("UTF-8"))
-        .header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JSStringRef.h").to_str().expect("UTF-8"))
-        .header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JSObjectRef.h") .to_str().expect("UTF-8"))
-        .header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JSTypedArray.h").to_str().expect("UTF-8"))
-        .header(build_dir.join("JavaScriptCore").join("Headers").join("JavaScriptCore").join("JSValueRef.h").to_str().expect("UTF-8"))
-        //
-        //
-        //.header(cargo_manifest_dir.join("WebKit").join("Source").join("WTF").join("icu").join("unicode").join("utf.h").to_str().expect("UTF-8"))
-        //
         .clang_args(&[
-            // API run-time headers
-            "-I",
-            cargo_manifest_dir
+            // libJavaScriptCore.a API run-time headers
+            // path: WebKit/Source/JavaScriptCore/API
+            "-I", cargo_manifest_dir
                 .join("WebKit")
                 .join("Source")
                 .join("JavaScriptCore")
                 .join("API").to_str().expect("UTF-8"),
-            // Private include for internal functionality
-            "-I",
-            build_dir
+            // libJavaScriptCore.a internal source headers
+            // path: out/build/JavaScriptCore/PrivateHeaders
+            "-I", build_dir
                 .join("JavaScriptCore")
                 .join("PrivateHeaders").to_str().expect("UTF-8"),
-            "-I",
-            build_dir
-                .join("JavaScriptCore")
-                .join("PrivateHeaders")
-                .join("JavaScriptCore").to_str().expect("UTF-8"),
-            // libJavaScriptCore source headers 
-            "-I",
-            build_dir
-                .join("JavaScriptCore")
-                .join("DerivedSources").to_str().expect("UTF-8"),
-            // libicu source headers 
-            "-I",
-            build_dir
-                .join("ICU")
-                .join("Headers")
-                .join("unicode").to_str().expect("UTF-8"),
-            // libWTF source headers 
-            "-I",
-            build_dir
+            // libWTF.a source headers 
+            // path: WebKit/Source/WTF
+            "-I", cargo_manifest_dir
                 .join("WebKit")
-                .join("Headers")
-                .join("wtf").to_str().expect("UTF-8"),
+                .join("Source")
+                .join("WTF").to_str().expect("UTF-8"),
+            // libbmalloc.a source headers
+            // path: WebKit/Source/bmalloc
+            "-I",
+            cargo_manifest_dir
+                .join("WebKit")
+                .join("Source")
+                .join("bmalloc").to_str().expect("UTF-8"),
         ])
         .enable_cxx_namespaces()
         // Translate every enum with the "rustified enum" strategy. We should
@@ -141,10 +115,12 @@ const ALLOWLIST_TYPES: &'static [&'static str] = &[
     "_JS.*",
     "JS[^C].*",
     // JSC API regex for enum exports of JSTypes
-    "^kJS.*",
+    //"^kJS.*",
     // libWTF.a
     "WTF::.*",
+    "_WTF::.*",
     // libicuuc.a libicui18n.a libicudata.a
+    "icu::.*",
     "_u.*",
 ];
 
@@ -155,7 +131,9 @@ const ALLOWLIST_FUNCTIONS: &'static [&'static str] = &[
     "JS[^C].*",
     // libWTF.a
     "WTF::.*",
+    "_WTF::.*",
     // libicuuc.a libicui18n.a libicudata.a
+    "icu::.*",
     "_u.*",
 ];
 
@@ -169,5 +147,6 @@ const BLOCKLIST_ITEMS: &'static [&'static str] = &[
     // Types for which we should NEVER generate bindings, even if it is used within
     // a type or function signature that we are generating bindings for.
     "JSC::.*",
+    ".*JSC::Intl.*",
     "root::CFStringRef",
 ];
