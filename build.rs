@@ -64,7 +64,10 @@ fn main() {
             "-I", build_dir
                 .join("JavaScriptCore")
                 .join("PrivateHeaders").to_str().expect("UTF-8"),
-            // libWTF.a source headers 
+            "-I", build_dir
+                .join("JavaScriptCore")
+                .join("Headers").to_str().expect("UTF-8"),
+             // libWTF.a source headers 
             // path: WebKit/Source/WTF
             "-I", cargo_manifest_dir
                 .join("WebKit")
