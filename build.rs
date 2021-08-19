@@ -25,21 +25,32 @@ fn main() {
     }
 
     // Link our freshly built static libraries
+    // Applicable to both darwin and gnu
     {
         println!("cargo:rustc-link-search=all={}/lib", cargo_manifest_dir.display());
         println!("cargo:rustc-link-lib=static=JavaScriptCore");
         println!("cargo:rustc-link-lib=static=WTF");
         println!("cargo:rustc-link-lib=static=bmalloc");
     }
-        
+       
     // We still need to link to system dylib for darwin builds
+    #[cfg(target_os = "macos")]
     {
         // By default, these are linked to:
         // path: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
-        println!("cargo:rustc-link-lib=c++");
         println!("cargo:rustc-link-lib=icucore");
-        //println!("cargo:rustc-link-lib=-std=libc++");
-    } 
+        println!("cargo:rustc-link-lib=c++");
+        //println!("cargo:rustc-link-lib=stdc++");
+    }
+
+
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-lib=icui18n");
+        println!("cargo:rustc-link-lib=icuuc");
+        println!("cargo:rustc-link-lib=icudata");
+        println!("cargo:rustc-link-lib=stdc++");
+    }
 
     let mut builder = bindgen::builder()
         .rust_target(bindgen::LATEST_STABLE_RUST)
@@ -67,7 +78,7 @@ fn main() {
             "-I", build_dir
                 .join("JavaScriptCore")
                 .join("Headers").to_str().expect("UTF-8"),
-             // libWTF.a source headers 
+            // libWTF.a source headers 
             // path: WebKit/Source/WTF
             "-I", cargo_manifest_dir
                 .join("WebKit")

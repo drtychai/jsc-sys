@@ -35,7 +35,14 @@ CMAKE_ARGS += " -DCMAKE_C_COMPILER=${CC}"
 CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
 CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize=address'"
-CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-stdlib=libc++'"
+
+ifeq (${OS},Darwin)
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-stdlib=c++'"
+endif
+ifeq (${OS},Linux)
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-std=c++14'"
+endif
+
 
 # Build statically using libglib
 CMAKE_ARGS += " -DCMAKE_SKIP_RPATH=ON"

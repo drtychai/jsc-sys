@@ -4,12 +4,13 @@ on:
   push:
     branches:
         - master
+        - linux
 
   pull_request:
     branches:
         - master
         - staging
-        - gnu
+        - linux
 
 env:
   CARGO_TERM_COLOR: always
