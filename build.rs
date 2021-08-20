@@ -75,6 +75,7 @@ fn main() {
             "-I", build_dir
                 .join("JavaScriptCore")
                 .join("PrivateHeaders").to_str().expect("UTF-8"),
+            #[cfg(target_os = "linux")]
             "-I", build_dir
                 .join("JavaScriptCore")
                 .join("Headers").to_str().expect("UTF-8"),

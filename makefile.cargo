@@ -37,7 +37,7 @@ CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize=address'"
 
 ifeq (${OS},Darwin)
-CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-stdlib=c++'"
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-stdlib=libc++'"
 endif
 ifeq (${OS},Linux)
 CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-std=c++14'"
