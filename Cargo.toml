@@ -7,9 +7,7 @@ authors = [ "bynx <drtychai@protonmail.com>" ]
 license = "AGPL-3.0"
 edition = "2018"
 build = "build.rs"
-exclude = [
-    "**/WebKit",
-] 
+exclude = ["**/WebKit"] 
 
 [lib]
 name = "jscjs_sys"
@@ -21,3 +19,4 @@ version = "2.2.2"
 
 [build-dependencies.bindgen]
 version = "0.59.1"
+

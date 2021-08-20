@@ -4,11 +4,11 @@ on:
   push:
     branches:
         - master
+        - darwin
   pull_request:
     branches:
         - master
         - staging
-        - darwin
 
 env:
   CARGO_TERM_COLOR: always

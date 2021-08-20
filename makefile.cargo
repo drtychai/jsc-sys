@@ -7,21 +7,15 @@ WEBKIT_SRC := ${CARGO_MANIFEST_DIR}/WebKit
 JSC_PATCH  := ${CARGO_MANIFEST_DIR}/cov.patch
 
 # Compilational compilation based on OS
-
 ifeq (${OS},Darwin)
 ## We need to use the non-system LLVM toolchain for SnitizerCoverage and ASAN
 CC  := $(shell stat -f /usr/local/Cellar/llvm/*/bin/clang)
 CXX := $(shell stat -f /usr/local/Cellar/llvm/*/bin/clang++)
-JSC_H  := ${WEBKIT_SRC}/Source/JavaScriptCore/API/JavaScriptCore.h
-SHIM_H := ${BUILD_DIR}/JavaScriptCore/PrivateHeaders/JavaScriptCore.h
 endif
-
 
 ifeq (${OS},Linux)
 CC  := $(shell which clang)
 CXX := $(shell which clang++)
-JSC_H  := ${WEBKIT_SRC}/Source/JavaScriptCore/API/glib/jsc.h
-SHIM_H := ${BUILD_DIR}/JavaScriptCore/Headers/JavaScriptCore.h
 endif
 
 # Determine current patch state of our target engine
@@ -42,11 +36,19 @@ CMAKE_ARGS += " -DCMAKE_CXX_COMPILER=${CXX}"
 CMAKE_ARGS += " -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-fsanitize=address'"
 
+ifeq (${OS},Darwin)
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-stdlib=libc++'"
+endif
+ifeq (${OS},Linux)
+CMAKE_ARGS += " -DCMAKE_CXX_FLAGS='-std=c++14'"
+endif
+
+
 # Build statically using libglib
 CMAKE_ARGS += " -DCMAKE_SKIP_RPATH=ON"
 CMAKE_ARGS += " -DENABLE_SAMPLING_PROFILER=OFF"
 CMAKE_ARGS += " -DUSE_LD_GOLD=OFF"
-CMAKE_ARGS += " -DUSE_SYSTEMD=OFF" # -DENABLE_SAMPLING_PROFILER=OFF"
+CMAKE_ARGS += " -DUSE_SYSTEMD=OFF"
 
 CMAKE_ARGS += " -DENABLE_STATIC_JSC=ON"
 CMAKE_ARGS += " -DENABLE_FTL_JIT=ON"
@@ -65,8 +67,10 @@ all: build
 
 build: cov configure
 	@ninja -C ${BUILD_DIR}
-	@#Copy over JavaScriptCore.h from our source directory for FFI generation
-	@cp ${JSC_H} ${SHIM_H}
+	@# Make a backup of our static libs
+	@mkdir -p ${CARGO_MANIFEST_DIR}/lib
+	@# If directory and archives exist, overwrite with latest build
+	@cp ${BUILD_DIR}/lib/*.a ${CARGO_MANIFEST_DIR}/lib
 
 configure:
 	@mkdir -p ${BUILD_DIR}
@@ -77,7 +81,12 @@ cov:
 	@if [[ -e "${NEEDS_PATCHED}" ]];then git -C ${WEBKIT_SRC} apply ${JSC_PATCH};fi
 
 clean:
-	@make -C .${WEBKIT_SRC} clean && git -C ${WEBKIT_SRC} checkout .
-	@cargo clean
+	@echo "[*] Cleanning our WebKit source tree..."
+	@make -C .${WEBKIT_SRC} clean >/dev/null
+	@
+	@echo "[*] Updating paths for our target WebKit commit..."
+	@git -C .${WEBKIT_SRC} checkout . 2>/dev/null
+	@
+	@cargo clean -v
 
 .PHONY: all cov configure build clean
