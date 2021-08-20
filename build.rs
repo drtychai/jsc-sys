@@ -65,13 +65,11 @@ fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self:
             "/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/JavaScriptCore.framework/Headers",
             // Only include public headers for non-darwin builds
             #[cfg(target_os = "linux")]
-            format!(
-                "-I {}",
-                build_dir
-                    .join("JavaScriptCore")
-                    .join("Headers")
-                    .display(),
-            ),
+            "-I",
+            #[cfg(target_os = "linux")]
+            build_dir
+                .join("JavaScriptCore")
+                .join("Headers").to_str().expect("UTF-8"),
         ])
         .enable_cxx_namespaces()
         // Translate every enum with the "rustified enum" strategy. We should
