@@ -1,12 +1,8 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(warnings)]
-
 use crate::api;
-use std::default::Default;
-use std::{ffi, ptr};
+use ::std::{ffi, ptr};
+use ::std::default::Default;
 
+/// Local Execution Context
 pub struct VM {
     raw: api::JSContextGroupRef,
 }
@@ -25,7 +21,7 @@ impl Drop for VM {
     }
 }
 
-// JSC managed String.
+/// JSC managed String.
 pub struct String {
     raw: api::JSStringRef,
 }
@@ -55,6 +51,7 @@ impl Drop for String {
     }
 }
 
+/// Global Execution Context
 pub struct Context {
     raw: api::JSGlobalContextRef,
 }
@@ -78,6 +75,7 @@ impl Drop for Context {
 }
 
 #[derive(Copy, Clone, Debug)]
+/// Wrapper around JSC types, e.g., Boolean, Number, etc.
 pub struct Value {
     raw: api::JSValueRef,
 }
@@ -182,6 +180,7 @@ impl Default for Value {
 }
 
 #[derive(Copy, Clone, Debug)]
+/// Top level structure for JavaScript. Equivalent to a HashMap.
 pub struct Object {
     raw: api::JSObjectRef,
 }
@@ -190,7 +189,12 @@ impl Object {
     pub fn array(ctx: &Context, arguments: &[Value]) -> JSResult<Object> {
         unsafe {
             let mut exception: api::JSValueRef = ptr::null_mut();
-            let result = api::JSObjectMakeArray(ctx.raw, arguments.len() as api::size_t, arguments.as_ptr() as *mut api::JSValueRef, &mut exception);
+            let result = api::JSObjectMakeArray(
+                ctx.raw,
+                arguments.len() as usize,
+                arguments.as_ptr() as *mut api::JSValueRef,
+                &mut exception,
+            );
             if exception == ptr::null_mut() {
                 Ok(Object { raw: result })
             } else {
@@ -225,7 +229,7 @@ impl Context {
         }
     }
 
-    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<bool> {
+    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<()> {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {
@@ -236,6 +240,21 @@ impl Context {
             } else {
                 Err(Value { raw: exception })
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::api;
+
+    // If this test fails, we have an issue with out bindings/FFIs
+    #[test]
+    #[ignore]
+    fn vm_context_ffi_smoke() {
+        unsafe {
+            let vm_raw = api::JSContextGroupCreate();
+            assert_eq!(api::JSContextGroupRelease(vm_raw), ());
         }
     }
 }

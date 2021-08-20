@@ -1,13 +1,33 @@
-#[build]
-#jobs = 16
+# https://doc.rust-lang.org/cargo/reference/config.html
+[alias]
+b = "build -vv"
+c = "check"
+t = "test -v"
+cc = "clean"
+
+[target.x86_64-apple-darwin]
+#linker = "clang"
+# If this linker is used, compilation seems to infinitely loop for clang-sys
+#linker = "ld64.lld"
+rustflags = [
+    #"-L","native=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib",
+    #"-l","icucore",
+    #"-l","c++",
+]
 
 [target.x86_64-unknown-linux-gnu]
+#linker = "clang"
 rustflags = [
-    "-L", "/usr/lib/x86_64-linux-gnu",
+    #"-L", "/usr/lib/x86_64-linux-gnu",
 ]
 
 [target.x86_64-unknown-linux-musl]
-linker = "x86_64-unknown-linux-musl"
+#linker = "ld.lld"
+rustflags = [
+    #"-L", "/usr/lib/x86_64-unknown-linux-musl",
+]
 
-
-# https://doc.rust-lang.org/cargo/reference/config.html
+[term]
+verbose = true
+color = 'auto'
+progress.when = 'auto'

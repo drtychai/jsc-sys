@@ -4,12 +4,12 @@ on:
   push:
     branches:
         - master
+        - linux
 
   pull_request:
     branches:
         - master
         - staging
-        - gnu
 
 env:
   CARGO_TERM_COLOR: always
@@ -74,9 +74,6 @@ jobs:
           llvm-12-dev \
           ninja-build
         sudo apt clean
-
-    - name: patch-cov
-      run: git apply .github/workflows/sancov-remove.patch
 
     - name: build
       run: cargo build -vv --target=x86_64-unknown-linux-gnu

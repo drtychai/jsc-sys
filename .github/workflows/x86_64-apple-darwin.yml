@@ -4,11 +4,11 @@ on:
   push:
     branches:
         - master
+        - darwin
   pull_request:
     branches:
         - master
-        - stagin
-        - darwin
+        - staging
 
 env:
   CARGO_TERM_COLOR: always
@@ -28,15 +28,8 @@ jobs:
     - name: install-deps
       run: brew install llvm ninja
 
-    - name: patch-cov
-      run: git apply .github/workflows/sancov-remove.patch
-
     - name: build
-      run: |
-          export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \
-            && cargo build -vv --target=x86_64-apple-darwin
+      run: cargo build -vv --target=x86_64-apple-darwin
 
-    - name: tests
-      run: |
-          export PATH="$(stat -f /usr/local/Cellar/llvm/*/bin):${PATH}" \
-            && cargo test -vv
+    - name: test
+      run: cargo test -vv --target=x86_64-apple-darwin

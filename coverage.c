@@ -1,4 +1,5 @@
 // SanitzerCoverage-based coverage collection code for libcoverage.
+#include <fcntl.h>
 #define REPRL_CRFD 100
 #define REPRL_CWFD 101
 #define REPRL_DRFD 102
