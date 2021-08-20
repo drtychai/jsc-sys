@@ -6,7 +6,7 @@ t = "test -v"
 cc = "clean"
 
 [target.x86_64-apple-darwin]
-linker = "clang"
+#linker = "clang"
 # If this linker is used, compilation seems to infinitely loop for clang-sys
 #linker = "ld64.lld"
 rustflags = [

@@ -1,20 +1,16 @@
 extern crate bindgen;
-use ::std::env;
+use ::std::{env, fmt};
 use ::std::path::PathBuf;
 use ::std::process::{Command, Stdio};
 
-fn main() {
-    let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-    let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
 
-    // Condition upon rerun
-    println!("cargo:rerun-if-changed={}/WebKit/Source/JavaScriptCore/API/JavaScript.h", cargo_manifest_dir.display());
-
+fn build_jsc(cargo_manifest_dir: &PathBuf) -> self::fmt::Result {
     // Initial build as JSCOnly;static;debug
     match Command::new("make")
         .args(&[
             "-R",
-            "-f", cargo_manifest_dir.join("makefile.cargo").to_str().expect("UTF-8"),
+            "-f",
+            cargo_manifest_dir.join("makefile.cargo").to_str().expect("UTF-8"),
         ])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -23,35 +19,10 @@ fn main() {
             Ok(r) => assert!(r.success()),
             Err(e) => panic!("Make command failed, err: {:?}",e),
     }
+    Ok(())
+}
 
-    // Link our freshly built static libraries
-    // Applicable to both darwin and gnu
-    {
-        println!("cargo:rustc-link-search=all={}/lib", cargo_manifest_dir.display());
-        println!("cargo:rustc-link-lib=static=JavaScriptCore");
-        println!("cargo:rustc-link-lib=static=WTF");
-        println!("cargo:rustc-link-lib=static=bmalloc");
-    }
-       
-    // We still need to link to system dylib for darwin builds
-    #[cfg(target_os = "macos")]
-    {
-        // By default, these are linked to:
-        // path: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
-        println!("cargo:rustc-link-lib=icucore");
-        println!("cargo:rustc-link-lib=c++");
-        //println!("cargo:rustc-link-lib=stdc++");
-    }
-
-
-    #[cfg(target_os = "linux")]
-    {
-        println!("cargo:rustc-link-lib=icui18n");
-        println!("cargo:rustc-link-lib=icuuc");
-        println!("cargo:rustc-link-lib=icudata");
-        println!("cargo:rustc-link-lib=stdc++");
-    }
-
+fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self::fmt::Result {
     let mut builder = bindgen::builder()
         .rust_target(bindgen::LATEST_STABLE_RUST)
         .header(cargo_manifest_dir
@@ -70,15 +41,6 @@ fn main() {
                 .join("Source")
                 .join("JavaScriptCore")
                 .join("API").to_str().expect("UTF-8"),
-            // libJavaScriptCore.a internal source headers
-            // path: out/build/JavaScriptCore/PrivateHeaders
-            "-I", build_dir
-                .join("JavaScriptCore")
-                .join("PrivateHeaders").to_str().expect("UTF-8"),
-            #[cfg(target_os = "linux")]
-            "-I", build_dir
-                .join("JavaScriptCore")
-                .join("Headers").to_str().expect("UTF-8"),
             // libWTF.a source headers 
             // path: WebKit/Source/WTF
             "-I", cargo_manifest_dir
@@ -92,7 +54,19 @@ fn main() {
                 .join("WebKit")
                 .join("Source")
                 .join("bmalloc").to_str().expect("UTF-8"),
-        ])
+            // libJavaScriptCore.a internal source headers
+            // path: out/build/JavaScriptCore/PrivateHeaders
+            "-I", build_dir
+                .join("JavaScriptCore")
+                .join("PrivateHeaders").to_str().expect("UTF-8"),
+             // Only include public headers for non-darwin builds
+             #[cfg(target_os = "linux")]
+            "-I",
+            #[cfg(target_os = "linux")]
+            build_dir
+                .join("JavaScriptCore")
+                .join("Headers").to_str().expect("UTF-8"),
+         ])
         .enable_cxx_namespaces()
         // Translate every enum with the "rustified enum" strategy. We should
         // investigate switching to the "constified module" strategy, which has
@@ -114,13 +88,60 @@ fn main() {
     }
 
     let bindings = builder
-        //.parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()
         .expect("Unable to generate bindings");
 
     bindings
         .write_to_file(build_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+
+
+    Ok(())
+}
+
+fn main() {
+    let cargo_manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
+    let build_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("build");
+
+    // Bail if JSC build fails
+    assert_eq!(
+        build_jsc(&cargo_manifest_dir),
+        Ok(())
+    );
+
+    // Link our freshly built static libraries
+    // Applicable to both darwin and gnu
+    println!("cargo:rustc-link-search=all={}/lib", cargo_manifest_dir.display());
+    println!("cargo:rustc-link-lib=static=JavaScriptCore");
+    println!("cargo:rustc-link-lib=static=WTF");
+    println!("cargo:rustc-link-lib=static=bmalloc");
+      
+    // OS-specific linking
+    { 
+        // We still need to link to system dylib for darwin builds
+        #[cfg(target_os = "macos")]
+        {
+            // By default, these are linked to:
+            // path: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
+            println!("cargo:rustc-link-lib=icucore");
+            println!("cargo:rustc-link-lib=c++");
+        }
+        #[cfg(target_os = "linux")]
+        {
+            println!("cargo:rustc-link-lib=icui18n");
+            println!("cargo:rustc-link-lib=icuuc");
+            println!("cargo:rustc-link-lib=icudata");
+            println!("cargo:rustc-link-lib=stdc++");
+        }
+    }
+
+    // Bail if bindgen fails
+    assert_eq!(
+        generate_bindings(&build_dir, &cargo_manifest_dir),
+        Ok(())
+    );
+
 }
 
 /// Types which we want to generate bindings for (and every other type they

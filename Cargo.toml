@@ -7,10 +7,7 @@ authors = [ "bynx <drtychai@protonmail.com>" ]
 license = "AGPL-3.0"
 edition = "2018"
 build = "build.rs"
-#links = "JavaScriptCore"
-exclude = [
-    "**/WebKit",
-] 
+exclude = ["**/WebKit"] 
 
 [lib]
 name = "jscjs_sys"
