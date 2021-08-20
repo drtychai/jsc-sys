@@ -59,7 +59,11 @@ fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self:
             "-I", build_dir
                 .join("JavaScriptCore")
                 .join("PrivateHeaders").to_str().expect("UTF-8"),
-             // Only include public headers for non-darwin builds
+            #[cfg(target_os = "macos")]
+            "-I",
+            #[cfg(target_os = "macos")]
+            "/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/JavaScriptCore.framework/Headers",
+            // Only include public headers for non-darwin builds
             #[cfg(target_os = "linux")]
             format!(
                 "-I {}",
