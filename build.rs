@@ -60,13 +60,15 @@ fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self:
                 .join("JavaScriptCore")
                 .join("PrivateHeaders").to_str().expect("UTF-8"),
              // Only include public headers for non-darwin builds
-             #[cfg(target_os = "linux")]
-            "-I",
             #[cfg(target_os = "linux")]
-            build_dir
-                .join("JavaScriptCore")
-                .join("Headers").to_str().expect("UTF-8"),
-         ])
+            format!(
+                "-I {}",
+                build_dir
+                    .join("JavaScriptCore")
+                    .join("Headers")
+                    .display(),
+            ),
+        ])
         .enable_cxx_namespaces()
         // Translate every enum with the "rustified enum" strategy. We should
         // investigate switching to the "constified module" strategy, which has
@@ -118,22 +120,21 @@ fn main() {
     println!("cargo:rustc-link-lib=static=bmalloc");
       
     // OS-specific linking
-    { 
-        // We still need to link to system dylib for darwin builds
-        #[cfg(target_os = "macos")]
-        {
-            // By default, these are linked to:
-            // path: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
-            println!("cargo:rustc-link-lib=icucore");
-            println!("cargo:rustc-link-lib=c++");
-        }
-        #[cfg(target_os = "linux")]
-        {
-            println!("cargo:rustc-link-lib=icui18n");
-            println!("cargo:rustc-link-lib=icuuc");
-            println!("cargo:rustc-link-lib=icudata");
-            println!("cargo:rustc-link-lib=stdc++");
-        }
+    #[cfg(target_os = "macos")]
+    {
+        // By default, these are linked to:
+        // - /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers/
+        // - /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/include/sys/
+        println!("cargo:rustc-link-lib=icucore");
+        println!("cargo:rustc-link-lib=c++");
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-lib=icui18n");
+        println!("cargo:rustc-link-lib=icuuc");
+        println!("cargo:rustc-link-lib=icudata");
+        println!("cargo:rustc-link-lib=stdc++");
     }
 
     // Bail if bindgen fails

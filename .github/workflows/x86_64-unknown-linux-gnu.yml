@@ -10,7 +10,6 @@ on:
     branches:
         - master
         - staging
-        - linux
 
 env:
   CARGO_TERM_COLOR: always
