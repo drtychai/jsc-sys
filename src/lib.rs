@@ -20,7 +20,5 @@
 //! [3]: https://developer.apple.com/documentation/javascriptcore
 //!
 #[allow(deref_nullptr)]
-mod api;
+pub mod api;
 pub mod runtime;
-pub use self::runtime::{Context, Object, String, Value, VM};
-

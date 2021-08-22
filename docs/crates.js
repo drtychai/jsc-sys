@@ -1,1 +1,0 @@
-window.ALL_CRATES = ["form_urlencoded","idna","jscjs_sys","matches","percent_encoding","tinyvec","tinyvec_macros","unicode_bidi","unicode_normalization","url"];

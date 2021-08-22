@@ -65,7 +65,7 @@ CMAKE_ARGS += " -DSHOW_BINDINGS_GENERATION_PROGRESS=1"
 
 all: build
 
-build: cov configure
+build: configure
 	@ninja -C ${BUILD_DIR}
 	@# Make a backup of our static libs
 	@mkdir -p ${CARGO_MANIFEST_DIR}/lib
