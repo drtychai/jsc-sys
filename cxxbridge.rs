@@ -206,10 +206,10 @@ mod ffi {
         fn JSContextGetGlobalObject(JSContextRef) -> JSObjectRef;
         
         /// Calls an object as a constructor.
-        fn JSObjectCallAsConstructor(JSContextRef, JSObjectRef, Int, UnsafePointer<JSValueRef?>, &mut JSValueRef) -> JSObjectRef;
+        fn JSObjectCallAsConstructor(JSContextRef, JSObjectRef, Int, &JSValueRef, &mut JSValueRef) -> JSObjectRef;
         
         /// Calls an object as a fntion.;
-        fn JSObjectCallAsFunction(JSContextRef, JSObjectRef, JSObjectRef, Int, UnsafePointer<JSValueRef?>, &mut JSValueRef) -> JSValueRef;
+        fn JSObjectCallAsFunction(JSContextRef, JSObjectRef, JSObjectRef, Int, &JSValueRef, &mut JSValueRef) -> JSValueRef;
         
         /// Gets the names of an object’s enumerable properties.
         fn JSObjectCopyPropertyNames(JSContextRef, JSObjectRef) -> JSPropertyNameArrayRef;
@@ -239,31 +239,31 @@ mod ffi {
         fn JSObjectIsFunction(JSContextRef, JSObjectRef) -> Bool;
         
         /// Creates a JavaScript object.
-        fn JSObjectMake(JSContextRef, JSClassRef, UnsafeMutableRawPointer) -> JSObjectRef;
+        fn JSObjectMake(JSContextRef, JSClassRef, Box<_>) -> JSObjectRef;
         
         /// Creates a JavaScript array object.
-        fn JSObjectMakeArray(JSContextRef, Int, UnsafePointer<JSValueRef?>, &mut JSValueRef) -> JSObjectRef;
+        fn JSObjectMakeArray(JSContextRef, Int, &JSValueRef, &mut JSValueRef) -> JSObjectRef;
         
         /// Creates a JavaScript constructor.
         fn JSObjectMakeConstructor(JSContextRef, JSClassRef, JSObjectCallAsConstructorCallback) -> JSObjectRef;
         
         /// Creates a JavaScript date object as though invoking the built-in date constructor.
-        fn JSObjectMakeDate(JSContextRef, Int, UnsafePointer<JSValueRef?>, &mut JSValueRef) -> JSObjectRef;
+        fn JSObjectMakeDate(JSContextRef, Int, &JSValueRef, &mut JSValueRef) -> JSObjectRef;
         
         /// Creates a JavaScript error object as though invoking the built-in error constructor.
-        fn JSObjectMakeError(JSContextRef, Int, UnsafePointer<JSValueRef?>, &mut JSValueRef) -> JSObjectRef;
+        fn JSObjectMakeError(JSContextRef, Int, &JSValueRef, &mut JSValueRef) -> JSObjectRef;
         
         /// Creates a fntion with a specified script as its body.;
-        fn JSObjectMakeFunction(JSContextRef, JSStringRef, UInt32, UnsafePointer<JSStringRef?>, JSStringRef, JSStringRef, Int32, &mut JSValueRef) -> JSObjectRef;
+        fn JSObjectMakeFunction(JSContextRef, JSStringRef, UInt32, &JSStringRef, JSStringRef, JSStringRef, Int32, &mut JSValueRef) -> JSObjectRef;
         
         /// Creates a JavaScript fntion with a specified callback as its implementation.;
         fn JSObjectMakeFunctionWithCallback(JSContextRef, JSStringRef, JSObjectCallAsFunctionCallback) -> JSObjectRef;
         
         /// Creates a JavaScript regular expression object as though invoking the built-in regular expression constructor.
-        fn JSObjectMakeRegExp(JSContextRef, Int, UnsafePointer<JSValueRef?>, &mut JSValueRef) -> JSObjectRef;
+        fn JSObjectMakeRegExp(JSContextRef, Int, &JSValueRef, &mut JSValueRef) -> JSObjectRef;
         
         /// Sets a pointer to private data on an object.
-        fn JSObjectSetPrivate(JSObjectRef, UnsafeMutableRawPointer) -> Bool;
+        fn JSObjectSetPrivate(JSObjectRef, Box<_>) -> Bool;
         
         /// Sets a property on an object.
         fn JSObjectSetProperty(JSContextRef, JSObjectRef, JSStringRef, JSValueRef, JSPropertyAttributes, &mut JSValueRef);
@@ -287,10 +287,10 @@ mod ffi {
         fn JSObjectSetPropertyForKey(JSContextRef, JSObjectRef, JSValueRef, JSValueRef, JSPropertyAttributes, &mut JSValueRef);
         
         /// Creates a JavaScript promise object by invoking the provided executor.
-        fn JSObjectMakeDeferredPromise(JSContextRef, &mut JSObjectRef?>, UnsafeMutablePointer<JSObjectRef?>, UnsafeMutablePointer<JSValueRef) -> JSObjectRef;
+        fn JSObjectMakeDeferredPromise(JSContextRef, &mut JSObjectRef, &mut JSObjectRef, &mut JSValueRef) -> JSObjectRef;
         
         /// Creates a JavaScript class.
-        fn JSClassCreate(UnsafePointer<JSClassDefinition>) -> JSClassRef;
+        fn JSClassCreate(&JSClassDefinition) -> JSClassRef;
         
         /// Releases a JavaScript class.
         fn JSClassRelease(JSClassRef);
