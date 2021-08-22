@@ -121,8 +121,6 @@ fn main() {
     #[cfg(target_os = "macos")]
     {
         // By default, these are linked to:
-        // - /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers/
-        // - /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/include/sys/
         println!("cargo:rustc-link-lib=icucore");
         println!("cargo:rustc-link-lib=c++");
     }
@@ -146,42 +144,79 @@ fn main() {
 /// Types which we want to generate bindings for (and every other type they
 /// transitively use).
 const ALLOWLIST_TYPES: &'static [&'static str] = &[
-    // libJavaScriptCore.a
-    "_JS.*",
-    "JS[^C].*",
-    // JSC API regex for enum exports of JSTypes
-    //"^kJS.*",
-    // libWTF.a
-    "WTF::.*",
-    "_WTF::.*",
-    // libicuuc.a libicui18n.a libicudata.a
-    "icu::.*",
-    "_u.*",
+    // A group that associates JavaScript execution contexts with one another.
+    "JSContextGroupRef",
+    
+    // A JavaScript execution context.
+    "JSContextRef",
+    
+    // A global JavaScript execution context.
+    "JSGlobalContextRef",
+    
+    // A UTF-16 character buffer.
+    "JSStringRef",
+    
+    // A JavaScript class.
+    "JSClassRef",
+    
+    // A JavaScript value.
+    "JSValueRef",
+    
+    // A JavaScript object.
+    "JSObjectRef",
 ];
 
 /// Functions we want to generate bindings to.
 const ALLOWLIST_FUNCTIONS: &'static [&'static str] = &[
-    // libJavaScriptCore.a
-    "_JS.*",
-    "JS[^C].*",
-    // libWTF.a
-    "WTF::.*",
-    "_WTF::.*",
-    // libicuuc.a libicui18n.a libicudata.a
-    "icu::.*",
-    "_u.*",
+    // Script Evaluation functions
+     
+    /// Checks for syntax errors in a string of JavaScript.
+    // JSCheckScriptSyntax(
+    //     JSContextRef!,
+    //     JSStringRef!, 
+    //     JSStringRef!, 
+    //     Int32,
+    //     UnsafeMutablePointer<JSValueRef?>!
+    // ) -> Bool
+    "JSCheckScriptSyntax",
+
+    /// Evaluates a string of JavaScript.
+    // JSEvaluateScript(
+    //     JSContextRef!, 
+    //     JSStringRef!, 
+    //     JSObjectRef!, 
+    //     JSStringRef!, 
+    //     Int32, 
+    //     UnsafeMutablePointer<JSValueRef?>!
+    // ) -> JSValueRef!
+    "JSEvaluateScript",
+
+    /// Performs a JavaScript garbage collection.
+    // "JSGarbageCollect(JSContextRef!)",
+    "JSGarbageCollect",
+ 
+    // Impls for allowlisted types
+    "JSContextGroup.*",
+    "JSContext.*",
+    "JSGlobalContext.*",
+    "JSString.*",
+    "JSClass.*",
+    "JSValue.*",
+    "JSObject.*",
 ];
 
 /// Types for which we should NEVER generate bindings, even if it is used within
 /// a type or function signature that we are generating bindings for.
 const BLOCKLIST_ITEMS: &'static [&'static str] = &[
-    // Functions for which we should NEVER generate bindings to.
-    "JSStringCreateWithCFString.*",
-    "JSStringCopyCFString.*",
+    //// Functions for which we should NEVER generate bindings to.
+    //"JSStringCreateWithCFString.*",
+    //"JSStringCopyCFString.*",
 
-    // Types for which we should NEVER generate bindings, even if it is used within
-    // a type or function signature that we are generating bindings for.
-    "JSC::.*",
-    ".*JSC::Intl.*",
-    "root::CFStringRef",
+    //// Types for which we should NEVER generate bindings, even if it is used within
+    //// a type or function signature that we are generating bindings for.
+    //"JSC::.*",
+    //".*JSC::Intl.*",
+    //"root::CFStringRef",
 ];
+
+

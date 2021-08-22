@@ -2,7 +2,7 @@ extern crate jscjs_sys;
 
 #[cfg(test)]
 mod runtime {
-    use super::jscjs_sys;
+    use super::jscjs_sys::runtime as jscjs_sys;
 
     #[test]
     fn context_value_as_bool() {
