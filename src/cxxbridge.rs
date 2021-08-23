@@ -2,9 +2,7 @@
 #[cxx::bridge]
 mod ffi {
     // Shared structs with fields visible to both languages.
-    {
-        // --- 
-    }
+    //  -----
 
     // C++ types and signatures exposed to Rust.
     unsafe extern "C++" {
