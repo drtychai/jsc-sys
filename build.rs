@@ -3,7 +3,6 @@ use ::std::{env, fmt};
 use ::std::path::PathBuf;
 use ::std::process::{Command, Stdio};
 
-
 fn build_jsc(cargo_manifest_dir: &PathBuf) -> self::fmt::Result {
     // Initial build as JSCOnly;static;debug
     match Command::new("make")
@@ -23,9 +22,29 @@ fn build_jsc(cargo_manifest_dir: &PathBuf) -> self::fmt::Result {
 }
 
 fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self::fmt::Result {
+    // Based on our build target, bind path of our FFI
+    // headers to inc_dir for use with bindgen
+    let inc_dir = if cfg!(target_os = "macos") {
+        // /Library/Developer/CommandLineTools/SDKs/MacOSX.*sdk 
+        let output = Command::new("xcrun")
+                .arg("-show-sdk-path")
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .output()
+                .expect("failed to execute xcrun")
+                .stdout;
+        String::from_utf8(output).unwrap()
+    } else { // target_os = "linux"
+        // ${OUT_DIR}/build/JavaScriptCore/Headers
+        format!(
+            "{}", build_dir.join("JavaScriptCore").join("Headers").display()
+        )
+    }; 
+
     let mut builder = bindgen::builder()
         .rust_target(bindgen::LATEST_STABLE_RUST)
-        .header(cargo_manifest_dir
+        .header(
+            cargo_manifest_dir
             .join("WebKit")
             .join("Source")
             .join("JavaScriptCore")
@@ -33,40 +52,7 @@ fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self:
             .join("JavaScript.h")
             .to_str().expect("UTF-8")
         )
-        .clang_args(&[
-            // libJavaScriptCore.a API run-time headers
-            // path: WebKit/Source/JavaScriptCore/API
-            "-I", cargo_manifest_dir
-                .join("WebKit")
-                .join("Source")
-                .join("JavaScriptCore")
-                .join("API").to_str().expect("UTF-8"),
-            // libWTF.a source headers 
-            // path: WebKit/Source/WTF
-            "-I", cargo_manifest_dir
-                .join("WebKit")
-                .join("Source")
-                .join("WTF").to_str().expect("UTF-8"),
-            // libbmalloc.a source headers
-            // path: WebKit/Source/bmalloc
-            "-I",
-            cargo_manifest_dir
-                .join("WebKit")
-                .join("Source")
-                .join("bmalloc").to_str().expect("UTF-8"),
-            // libJavaScriptCore.a internal source headers
-            // path: out/build/JavaScriptCore/PrivateHeaders
-            "-I", build_dir
-                .join("JavaScriptCore")
-                .join("PrivateHeaders").to_str().expect("UTF-8"),
-            // Only include public headers for non-darwin builds
-            #[cfg(target_os = "linux")]
-            "-I",
-            #[cfg(target_os = "linux")]
-            build_dir
-                .join("JavaScriptCore")
-                .join("Headers").to_str().expect("UTF-8"),
-        ])
+        .clang_args(&["-I", &inc_dir])
         .enable_cxx_namespaces()
         // Translate every enum with the "rustified enum" strategy. We should
         // investigate switching to the "constified module" strategy, which has
@@ -96,7 +82,6 @@ fn generate_bindings(build_dir: &PathBuf, cargo_manifest_dir: &PathBuf) -> self:
         .write_to_file(build_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
-
     Ok(())
 }
 
@@ -116,17 +101,14 @@ fn main() {
     println!("cargo:rustc-link-lib=static=JavaScriptCore");
     println!("cargo:rustc-link-lib=static=WTF");
     println!("cargo:rustc-link-lib=static=bmalloc");
-      
-    // OS-specific linking
-    #[cfg(target_os = "macos")]
-    {
-        // By default, these are linked to:
+
+    if cfg!(target_os = "macos") {
+        // x86_64-apple-darwin
         println!("cargo:rustc-link-lib=icucore");
         println!("cargo:rustc-link-lib=c++");
-    }
-    
-    #[cfg(target_os = "linux")]
-    {
+    } else {
+        // target_os = "linux"
+        // x86_64-unknown-linux-gnu
         println!("cargo:rustc-link-lib=icui18n");
         println!("cargo:rustc-link-lib=icuuc");
         println!("cargo:rustc-link-lib=icudata");
@@ -138,7 +120,6 @@ fn main() {
         generate_bindings(&build_dir, &cargo_manifest_dir),
         Ok(())
     );
-
 }
 
 /// Types which we want to generate bindings for (and every other type they
@@ -168,31 +149,13 @@ const ALLOWLIST_TYPES: &'static [&'static str] = &[
 
 /// Functions we want to generate bindings to.
 const ALLOWLIST_FUNCTIONS: &'static [&'static str] = &[
-    // Script Evaluation functions
-     
-    /// Checks for syntax errors in a string of JavaScript.
-    // JSCheckScriptSyntax(
-    //     JSContextRef!,
-    //     JSStringRef!, 
-    //     JSStringRef!, 
-    //     Int32,
-    //     UnsafeMutablePointer<JSValueRef?>!
-    // ) -> Bool
+    // Checks for syntax errors in a string of JavaScript.
     "JSCheckScriptSyntax",
 
-    /// Evaluates a string of JavaScript.
-    // JSEvaluateScript(
-    //     JSContextRef!, 
-    //     JSStringRef!, 
-    //     JSObjectRef!, 
-    //     JSStringRef!, 
-    //     Int32, 
-    //     UnsafeMutablePointer<JSValueRef?>!
-    // ) -> JSValueRef!
+    // Evaluates a string of JavaScript.
     "JSEvaluateScript",
 
-    /// Performs a JavaScript garbage collection.
-    // "JSGarbageCollect(JSContextRef!)",
+    // Performs a JavaScript garbage collection.
     "JSGarbageCollect",
  
     // Impls for allowlisted types
@@ -208,15 +171,12 @@ const ALLOWLIST_FUNCTIONS: &'static [&'static str] = &[
 /// Types for which we should NEVER generate bindings, even if it is used within
 /// a type or function signature that we are generating bindings for.
 const BLOCKLIST_ITEMS: &'static [&'static str] = &[
-    //// Functions for which we should NEVER generate bindings to.
-    //"JSStringCreateWithCFString.*",
-    //"JSStringCopyCFString.*",
+    // Functions for which we should NEVER generate bindings to.
+    //"JSString.*CFString.*",
 
-    //// Types for which we should NEVER generate bindings, even if it is used within
-    //// a type or function signature that we are generating bindings for.
-    //"JSC::.*",
-    //".*JSC::Intl.*",
-    //"root::CFStringRef",
+    // Types for which we should NEVER generate bindings, even if it is used within
+    // a type or function signature that we are generating bindings for.
+    //"CFString.*",
 ];
 
 
