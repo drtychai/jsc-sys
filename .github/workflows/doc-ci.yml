@@ -68,7 +68,7 @@ jobs:
     - name: build-docs
       run: cargo doc
 
-    - name: configure-docs
+    - name: configure-and-push-docs
       env:
         GITHUB_BRANCH: 'gh-pages'
         GITHUB_ACTOR: 'drtychai'
@@ -83,9 +83,7 @@ jobs:
           && git config user.name "${GITHUB_ACTOR}" \
           && git config user.email "${GITHUB_ACTOR}@users.noreply.github.com" \
           && git remote add origin "git@github.com:${GITHUB_REPOSITORY}" \
-          && git config core.sshCommand "ssh -i ${GITHUB_TOKEN}" \
-          && git add ./* \
-          && git commit -m "Crate Docs via CI"
-
-    - name: push-docs
-      run: git push --force origin gh-pages 
+          && git config core.sshCommand "ssh -i ${GITHUB_TOKEN}"
+        git add ./* \
+          && git commit -m "Crate Docs via CI" \
+          && git push --force origin gh-pages 
