@@ -229,7 +229,7 @@ impl Context {
         }
     }
 
-    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<()> {
+    pub fn check_syntax(&self, script: &str, url: url::Url, starting_line_number: i32) -> JSResult<bool> {
         let string = String::new(script);
         let source = String::new(url.as_str());
         unsafe {

@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Context","Global Execution Context"],["Object","Top level structure for JavaScript. Equivalent to a HashMap."],["String","JSC managed String."],["VM","Local Execution Context"],["Value","Wrapper around JSC types, e.g., Boolean, Number, etc."]],"type":[["JSResult",""]]});
