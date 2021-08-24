@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Iter","Iterator over elements of a `CxxVector` by shared reference."],["IterMut","Iterator over elements of a `CxxVector` by pinned mutable reference."]],"trait":[["VectorElement","Trait bound for types which may be used as the `T` inside of a `CxxVector<T>` in generic code."]],"type":[["Vector","Synonym for `CxxVector`."]]});

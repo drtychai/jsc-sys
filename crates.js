@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["cxx","cxxbridge_macro","form_urlencoded","idna","jscjs_sys","link_cplusplus","matches","percent_encoding","proc_macro2","quote","syn","tinyvec","tinyvec_macros","unicode_bidi","unicode_normalization","unicode_xid","url"];

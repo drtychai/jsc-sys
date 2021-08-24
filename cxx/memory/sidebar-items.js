@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["SharedPtrTarget","Trait bound for types which may be used as the `T` inside of a `SharedPtr<T>` in generic code."],["UniquePtrTarget","Trait bound for types which may be used as the `T` inside of a `UniquePtr<T>` in generic code."],["WeakPtrTarget","Trait bound for types which may be used as the `T` inside of a `WeakPtr<T>` in generic code."]]});

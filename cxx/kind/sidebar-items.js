@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Opaque","An opaque type which cannot be passed or held by value within Rust."],["Trivial","A type with trivial move constructor and no destructor, which can therefore be owned and moved around in Rust code without requiring indirection."]],"trait":[["Kind",""]]});

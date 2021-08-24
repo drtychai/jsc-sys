@@ -1,0 +1,1 @@
+initSidebarItems({"attr":[["bridge","`#[cxx::bridge] mod ffi { ... }`"]]});
