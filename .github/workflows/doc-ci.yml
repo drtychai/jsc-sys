@@ -1,23 +1,14 @@
-name: gnu
-
+name: publish-docs
 on:
-  push:
-    branches:
-        - master
   pull_request:
     branches:
-        - master
-        - staging
+      - master
 
-env:
-  CARGO_TERM_COLOR: always
-
-jobs:
-  build-gnu:
-    runs-on: ubuntu-20.04
-
+jobs: 
+  docs:
+    runs-on: ubuntu-latest
     steps:
-    - name: pull-all-source
+    - name: pull-target-source
       uses: actions/checkout@v2
       with:
         repository: '${{ github.repository }}'
@@ -72,12 +63,26 @@ jobs:
           llvm-12-dev \
           ninja-build
         sudo apt clean
+      
+    - name: build-docs
+      run: cargo doc
 
-    - name: build
-      run: cargo build -vv --target=x86_64-unknown-linux-gnu
-
-    - name: tests
-      run: cargo test -vv
-
-    - name: doc
-      run: cargo doc -vv
+    - name: configure-and-push-docs
+      env:
+        GITHUB_ACTOR: 'drtychai'
+        GITHUB_BRANCH: 'gh-pages'
+        GITHUB_REPOSITORY: '${{ github.repository }}'
+        GITHUB_TOKEN: '/dev/shm/git_deploy'
+      run: |
+        echo "${{ secrets.GIT_DEPLOY_KEY }}" > "${GITHUB_TOKEN}" \
+          && chmod 600 "${GITHUB_TOKEN}"
+        cd target/doc \
+          && git init \
+          && git branch -m "${GITHUB_BRANCH}" \
+          && git config user.name "${GITHUB_ACTOR}" \
+          && git config user.email "${GITHUB_ACTOR}@users.noreply.github.com" \
+          && git remote add origin "git@github.com:${GITHUB_REPOSITORY}" \
+          && git config core.sshCommand "ssh -i ${GITHUB_TOKEN}"
+        git add ./* \
+          && git commit -m "Crate Docs via CI" \
+          && git push --force origin "${GITHUB_BRANCH}"

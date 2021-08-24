@@ -17,6 +17,11 @@ crate-type = ["rlib", "staticlib"]
 [dependencies.url]
 version = "2.2.2"
 
+[dependencies.cxx]
+version = "1.0"
+
 [build-dependencies.bindgen]
 version = "0.59.1"
 
+[build-dependencies.cxx-build]
+version = "1.0"
