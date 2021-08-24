@@ -70,14 +70,16 @@ jobs:
 
     - name: configure-and-push-docs
       env:
+        GITHUB_BRANCH: 'gh-pages'
         GITHUB_ACTOR: 'drtychai'
         GITHUB_TOKEN: '${{ secrets.GIT_DEPLOY_KEY }}'
         GITHUB_REPOSITORY: '${{ github.repository }}'
-        GITHUB_BRANCH: 'gh-pages'
+        CARGO_MANIFEST_DIR: '/home/runner/work/jsc-sys/jsc-sys'
+        GHP_DOC_DIR: '/home/runner/work/jsc-sys/ghp'
       run: |
-        mkdir -p ${HOME}/ghp \
-          && mv ${GITHUB_REPOSITORY}/target/doc/* ${HOME}/ghp
-        cd ${HOME}/ghp \
+        mkdir -p ${GHP_DOC_DIR} \
+          && cp -r ${CARGO_MANIFEST_DIR}/target/doc/* ${GHP_DOC_DIR}
+        cd ${GHP_DOC_DIR} \
           && git init \
           && git config user.name "${GITHUB_ACTOR}" \
           && git config user.email "${GITHUB_ACTOR}@users.noreply.github.com" \
