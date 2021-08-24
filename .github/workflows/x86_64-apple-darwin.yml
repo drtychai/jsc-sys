@@ -33,3 +33,6 @@ jobs:
 
     - name: test
       run: cargo test -vv --target=x86_64-apple-darwin
+
+    - name: doc
+      run: cargo doc -vv
